@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Alexandria } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar"; // استدعاء قطعة الناف بار
 
-const inter = Inter({ subsets: ["latin"] });
+const alexandria = Alexandria({ 
+  subsets: ["arabic"],
+  variable: "--font-alexandria",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "نظام إدارة الفعاليات",
-  description: "نظام ذكي لإدارة الدعوات عبر الواتساب",
+  title: "مِراس | Meras",
+  description: "الجيل الجديد من إدارة المناسبات والأعمال",
 };
 
 export default function RootLayout({
@@ -16,15 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl"> 
-      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {/* وضعنا الناف بار هنا ليظهر في كل مكان */}
-        <Navbar />
-        
-        {/* هذا هو محتوى الصفحة المتغير */}
-        <main className="max-w-7xl mx-auto p-6">
-          {children}
-        </main>
+    <html lang="ar" dir="rtl">
+      <body className={`${alexandria.variable} bg-background text-white antialiased`}>
+        {/* Noise overlay for texture */}
+        <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-50 bg-noise mix-blend-overlay"></div>
+        {children}
       </body>
     </html>
   );

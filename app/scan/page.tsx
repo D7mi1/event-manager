@@ -1,143 +1,223 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { supabase } from '@/utils/supabase';
-import { CheckCircle, XCircle, RefreshCcw, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useRef, useEffect } from 'react';
+import { Scanner } from '@yudiel/react-qr-scanner';
+import { supabase } from '@/app/utils/supabase/client';
+import { Attendee } from '@/types';
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, ScanLine } from 'lucide-react';
 
-export default function ScanPage() {
-  const [scanResult, setScanResult] = useState<any>(null); // لحفظ نتيجة الفحص
-  const [message, setMessage] = useState(''); // رسالة النجاح أو الفشل
-  const [isScanning, setIsScanning] = useState(true);
+type ScanStatus = 'idle' | 'processing' | 'success' | 'error' | 'warning';
 
-  useEffect(() => {
-    // إعدادات الماسح
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
+interface ScanResult {
+    status: ScanStatus;
+    message: string;
+    attendee?: Attendee;
+}
 
-    // دالة تعمل عند اكتشاف كود
-    async function onScanSuccess(decodedText: string) {
-      scanner.clear(); // إيقاف الكاميرا مؤقتاً
-      setIsScanning(false);
-      setMessage('جاري التحقق...');
+export default function ScannerPage() {
+    const [result, setResult] = useState<ScanResult>({ status: 'idle', message: 'جاهز للمسح' });
+    const [lastScannedId, setLastScannedId] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
-      // 1. البحث عن التذكرة في قاعدة البيانات
-      const { data: ticket, error } = await supabase
-        .from('attendees')
-        .select('*, events(name)')
-        .eq('id', decodedText)
-        .single();
-
-      if (error || !ticket) {
-        setScanResult({ success: false, text: 'تذكرة غير موجودة أو مزيفة' });
-        return;
-      }
-
-      // 2. التحقق هل تم استخدامها سابقاً؟
-      if (ticket.status === 'confirmed') {
-        setScanResult({ 
-          success: false, 
-          text: 'تم استخدام هذه التذكرة سابقاً!',
-          guest: ticket.name 
-        });
-        return;
-      }
-
-      // 3. تسجيل الحضور (تحديث الحالة)
-      await supabase
-        .from('attendees')
-        .update({ status: 'confirmed' })
-        .eq('id', decodedText);
-
-      setScanResult({ 
-        success: true, 
-        text: 'أهلاً بك! تم تسجيل الدخول بنجاح',
-        guest: ticket.name,
-        event: ticket.events?.name
-      });
-    }
-
-    function onScanFailure(error: any) {
-      // لا نفعل شيئاً عند الفشل المستمر (لأن الكاميرا تبحث دائماً)
-    }
-
-    // تشغيل الماسح
-    scanner.render(onScanSuccess, onScanFailure);
-
-    // تنظيف عند الخروج من الصفحة
-    return () => {
-      scanner.clear().catch(error => console.error('Failed to clear scanner. ', error));
+    // Sound effects (optional, can be added later, just placeholder for now)
+    const playSound = (type: 'success' | 'error') => {
+        // Implement sound feedback if assets exist
     };
-  }, []);
 
-  // دالة لإعادة تشغيل المسح لضيف جديد
-  function resetScanner() {
-    window.location.reload(); // أسهل طريقة لإعادة تهيئة الكاميرا
-  }
+    const handleScan = async (detectedCodes: any[]) => {
+        if (detectedCodes.length === 0) return;
 
-  return (
-    <div className="min-h-screen bg-black text-white p-4 flex flex-col items-center">
-      
-      {/* رأس الصفحة */}
-      <div className="w-full flex justify-between items-center mb-6 max-w-md">
-        <h1 className="text-xl font-bold">ماسح التذاكر 📸</h1>
-        <Link href="/" className="bg-gray-800 p-2 rounded-full">
-          <ArrowRight size={20} />
-        </Link>
-      </div>
+        const rawValue = detectedCodes[0].rawValue;
+        if (!rawValue || rawValue === lastScannedId || result.status === 'processing') return;
 
-      {/* منطقة الكاميرا */}
-      {isScanning && (
-        <div className="w-full max-w-md bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-          <div id="reader" className="w-full"></div>
-          <p className="text-center text-gray-400 py-4 text-sm">وجّه الكاميرا نحو رمز QR</p>
-        </div>
-      )}
+        setLastScannedId(rawValue);
+        setResult({ status: 'processing', message: 'جاري التحقق...' });
 
-      {/* منطقة النتيجة (تظهر بعد المسح) */}
-      {!isScanning && scanResult && (
-        <div className={`w-full max-w-md p-8 rounded-2xl text-center shadow-2xl ${
-          scanResult.success ? 'bg-green-600' : 'bg-red-600'
-        }`}>
-          
-          <div className="flex justify-center mb-4">
-            {scanResult.success ? (
-              <CheckCircle size={64} className="text-white" />
-            ) : (
-              <XCircle size={64} className="text-white" />
-            )}
-          </div>
+        try {
+            // 1. Fetch Attendee
+            const { data: attendee, error } = await supabase
+                .from('attendees')
+                .select('*, events(*)')
+                .eq('id', rawValue)
+                .single();
 
-          <h2 className="text-2xl font-bold mb-2">
-            {scanResult.success ? 'مسموح بالدخول' : 'مرفوض'}
-          </h2>
-          
-          <p className="text-white/90 text-lg mb-6 font-medium">
-            {scanResult.text}
-          </p>
+            if (error || !attendee) {
+                setResult({ status: 'error', message: 'التذكرة غير موجودة أو غير صالحة' });
+                playSound('error');
+                return;
+            }
 
-          {scanResult.guest && (
-            <div className="bg-white/20 p-4 rounded-xl mb-6 backdrop-blur-sm">
-              <p className="text-xs text-white/70">الضيف</p>
-              <p className="text-xl font-bold">{scanResult.guest}</p>
-              {scanResult.event && <p className="text-sm mt-1">{scanResult.event}</p>}
+            // 2. Check if already attended
+            if (attendee.status === 'attended') {
+                setResult({
+                    status: 'warning',
+                    message: 'تم تحضير الضيف مسبقاً!',
+                    attendee: attendee as Attendee
+                });
+                playSound('error');
+                return;
+            }
+
+            // 3. Mark as attended
+            const { error: updateError } = await supabase
+                .from('attendees')
+                .update({ status: 'attended' })
+                .eq('id', rawValue);
+
+            if (updateError) throw updateError;
+
+            setResult({
+                status: 'success',
+                message: 'تم التحضير بنجاح',
+                attendee: attendee as Attendee
+            });
+            playSound('success');
+
+        } catch (err) {
+            console.error(err);
+            setResult({ status: 'error', message: 'حدث خطأ في النظام' });
+        }
+    };
+
+    // Auto-reset idle state after error/warning to allow new scans quickly
+    useEffect(() => {
+        if (result.status !== 'idle' && result.status !== 'processing') {
+            const timer = setTimeout(() => {
+                // We don't verify 'success' automatically to let the guard see the name
+                if (result.status === 'error' || result.status === 'warning') {
+                    // Optional: Auto reset or keep it until manual reset? 
+                    // Let's keep it for 3 seconds then allow rescan, but scan logic handles "lastScannedId"
+                }
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [result.status]);
+
+    const resetScanner = () => {
+        setResult({ status: 'idle', message: 'جاهز للمسح' });
+        setLastScannedId(null);
+    };
+
+    // Determine UI colors based on status
+    const getStatusColor = () => {
+        switch (result.status) {
+            case 'success': return 'bg-green-500';
+            case 'error': return 'bg-red-500';
+            case 'warning': return 'bg-yellow-500';
+            case 'processing': return 'bg-blue-500';
+            default: return 'bg-white/10';
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-black text-white flex flex-col font-sans" dir="rtl">
+
+            {/* Scanner Area */}
+            <div className="flex-1 relative overflow-hidden bg-black">
+                <Scanner
+                    onScan={handleScan}
+                    styles={{
+                        container: { height: '100%', width: '100%' },
+                        video: { height: '100%', objectFit: 'cover' }
+                    }}
+                    components={{
+                        audio: false, // We'll handle audio manually if needed
+                        torch: true,
+                        zoom: true
+                    }}
+                />
+
+                {/* Overlay Guide */}
+                <div className="absolute inset-0 border-[30px] border-black/50 flex items-center justify-center pointer-events-none">
+                    <div className="w-64 h-64 border-2 border-white/20 rounded-3xl relative animate-pulse">
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl"></div>
+                    </div>
+                </div>
+
+                {/* Top Header */}
+                <div className="absolute top-0 left-0 w-full p-6 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-start">
+                    <div>
+                        <h1 className="text-xl font-bold flex items-center gap-2"><ScanLine className="text-blue-500" /> الماسح الضوئي</h1>
+                        <p className="text-xs text-white/50">قم بتوجيه الكاميرا نحو رمز QR للتذكرة</p>
+                    </div>
+                </div>
             </div>
-          )}
 
-          <button 
-            onClick={resetScanner}
-            className="bg-white text-black px-8 py-3 rounded-full font-bold flex items-center justify-center gap-2 w-full hover:bg-gray-100 transition"
-          >
-            <RefreshCcw size={20} />
-            فحص تذكرة أخرى
-          </button>
+            {/* Results Area - Slide Up Panel */}
+            <div className={`
+        relative z-20 transition-all duration-500 ease-spring
+        ${result.status === 'idle' ? 'h-32 bg-black/90' : 'h-[45vh] bg-[#18181B] rounded-t-[2.5rem]'}
+      `}>
+                <div className="h-full flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+
+                    {/* Status Indicator Bar */}
+                    <div className={`absolute top-0 left-0 w-full h-2 transition-colors duration-300 ${getStatusColor()}`}></div>
+
+                    {result.status === 'idle' && (
+                        <div className="text-white/40 flex flex-col items-center gap-2 animate-pulse">
+                            <ScanLine size={32} />
+                            <p>بانتظار المسح...</p>
+                        </div>
+                    )}
+
+                    {result.status === 'processing' && (
+                        <div className="flex flex-col items-center gap-4">
+                            <Loader2 className="animate-spin text-blue-500" size={48} />
+                            <h2 className="text-xl font-bold">جاري التحقق...</h2>
+                        </div>
+                    )}
+
+                    {result.status === 'success' && result.attendee && (
+                        <div className="w-full h-full flex flex-col items-center justify-center animate-in slide-in-from-bottom duration-500">
+                            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                                <CheckCircle2 className="text-green-500" size={40} />
+                            </div>
+                            <h2 className="text-3xl font-black mb-2 text-green-500">أهلاً بك!</h2>
+                            <h3 className="text-2xl text-white font-bold mb-1">{result.attendee.name}</h3>
+                            <p className="text-white/50 text-sm mb-6">{result.attendee.events?.name}</p>
+                            <div className="flex gap-2 text-xs font-mono text-white/30 bg-white/5 px-4 py-2 rounded-full">
+                                <span>ID: {result.attendee.id.slice(0, 8)}</span>
+                            </div>
+                            <button onClick={resetScanner} className="mt-8 bg-white/10 hover:bg-white/20 px-8 py-3 rounded-xl font-bold transition-all">
+                                مسح تذكرة أخرى
+                            </button>
+                        </div>
+                    )}
+
+                    {result.status === 'warning' && result.attendee && (
+                        <div className="w-full h-full flex flex-col items-center justify-center animate-in slide-in-from-bottom duration-500">
+                            <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mb-4">
+                                <AlertTriangle className="text-yellow-500" size={40} />
+                            </div>
+                            <h2 className="text-2xl font-black mb-2 text-yellow-500">نتبه! تم التحضير مسبقاً</h2>
+                            <h3 className="text-xl text-white font-bold mb-6">{result.attendee.name}</h3>
+                            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-xs text-yellow-200 w-full max-w-xs">
+                                هذه التذكرة تم مسحها سابقاً، يرجى التأكد من هوية الحامل.
+                            </div>
+                            <button onClick={resetScanner} className="mt-8 bg-white/10 hover:bg-white/20 px-8 py-3 rounded-xl font-bold transition-all">
+                                متابعة
+                            </button>
+                        </div>
+                    )}
+
+                    {result.status === 'error' && (
+                        <div className="w-full h-full flex flex-col items-center justify-center animate-in slide-in-from-bottom duration-500">
+                            <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                                <XCircle className="text-red-500" size={40} />
+                            </div>
+                            <h2 className="text-2xl font-black mb-2 text-red-500">خطأ في التذكرة</h2>
+                            <p className="text-white/60 mb-8">{result.message}</p>
+                            <button onClick={resetScanner} className="mt-auto bg-white/10 hover:bg-white/20 px-8 py-3 rounded-xl font-bold transition-all">
+                                المحاولة مرة أخرى
+                            </button>
+                        </div>
+                    )}
+
+                </div>
+            </div>
         </div>
-      )}
-
-    </div>
-  );
+    );
 }
