@@ -4,9 +4,11 @@ import { useEffect, use } from 'react';
 import { supabase } from '@/app/utils/supabase/client';
 import { useEventStore } from '@/store/eventStore';
 
-// استيراد المكونات (تأكد من وجود هذا السطر 👇)
-import { WhatsAppQueueModal } from '@/components/dashboard/WhatsAppQueueModal'; 
+// ✅ استيراد البطاقة المدمجة الجديدة (Scanner + PIN)
+import ScannerAccessCard from '@/components/dashboard/ScannerAccessCard';
 
+// استيراد المكونات الأخرى
+import { WhatsAppQueueModal } from '@/components/dashboard/WhatsAppQueueModal'; 
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { AttendeesTable } from '@/components/dashboard/AttendeesTable';
 import { AddGuestModal } from '@/components/dashboard/AddGuestModal';
@@ -25,7 +27,6 @@ export default function EventControlRoom({ params }: PageProps) {
   const { 
     setEventId, fetchData, isLoading, 
     toggleAddModal, toggleMessageModal, toggleEditEventModal, toggleImportModal, 
-    toggleQueueModal, // ✅ تأكدنا من استدعائها هنا أيضاً إذا احتجتها
     eventDetails, attendees 
   } = useEventStore();
 
@@ -33,7 +34,12 @@ export default function EventControlRoom({ params }: PageProps) {
     setEventId(id);
     fetchData();
     const channel = supabase.channel(`room-${id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendees', filter: `event_id=eq.${id}` }, () => fetchData())
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'attendees', 
+        filter: `event_id=eq.${id}` 
+      }, () => fetchData())
       .subscribe();
     return () => { supabase.removeChannel(channel) };
   }, [id, setEventId, fetchData]);
@@ -51,7 +57,11 @@ export default function EventControlRoom({ params }: PageProps) {
     link.click();
   };
 
-  if (isLoading) return <div className="h-screen flex items-center justify-center bg-[#0A0A0C]"><Loader2 className="animate-spin text-[#C19D65]" /></div>;
+  if (isLoading) return (
+    <div className="h-screen flex items-center justify-center bg-[#0A0A0C]">
+      <Loader2 className="animate-spin text-[#C19D65]" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] p-4 md:p-8 text-white font-sans" dir="rtl">
@@ -59,7 +69,9 @@ export default function EventControlRoom({ params }: PageProps) {
       {/* --- Header Section --- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-           <Link href="/dashboard" className="text-white/50 hover:text-white flex items-center gap-2 text-sm mb-2"><ArrowLeft size={16}/> العودة للرئيسية</Link>
+           <Link href="/dashboard" className="text-white/50 hover:text-white flex items-center gap-2 text-sm mb-2">
+             <ArrowLeft size={16}/> العودة للرئيسية
+           </Link>
            <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-white">{eventDetails?.name || 'غرفة التحكم'}</h1>
               <button onClick={() => toggleEditEventModal(true)} 
@@ -68,7 +80,11 @@ export default function EventControlRoom({ params }: PageProps) {
                   <Edit size={16}/>
               </button>
            </div>
-           {eventDetails?.location_name && <p className="text-gray-400 text-sm flex items-center gap-1 mt-1"><MapPin size={14}/> {eventDetails.location_name}</p>}
+           {eventDetails?.location_name && (
+             <p className="text-gray-400 text-sm flex items-center gap-1 mt-1">
+               <MapPin size={14}/> {eventDetails.location_name}
+             </p>
+           )}
         </div>
         
         <div className="flex gap-2 w-full md:w-auto">
@@ -98,17 +114,17 @@ export default function EventControlRoom({ params }: PageProps) {
             <StatsCards />
             <AttendeesTable />
          </div>
+
+         {/* العمود الجانبي */}
          <div className="space-y-6">
-            <div className="bg-[#18181B] rounded-[2rem] border border-white/10 p-6 text-center">
-               <h3 className="font-bold mb-4 text-[#C19D65]">رابط الماسح الضوئي</h3>
-               <div className="p-3 bg-black/30 rounded-xl mb-4 font-mono text-xs text-white/60 truncate select-all">
-                  {`${typeof window !== 'undefined' ? window.location.origin : ''}/scan/${id}`}
-               </div>
-               <button onClick={() => {navigator.clipboard.writeText(`${window.location.origin}/scan/${id}`); alert('تم النسخ')}} 
-                  className="w-full py-3 bg-[#C19D65] text-black font-bold rounded-xl hover:brightness-110">
-                  نسخ رابط الـ Scanner
-               </button>
-            </div>
+            
+            {/* ✅ هنا التغيير الجذري: استخدام البطاقة المدمجة بدلاً من العنصرين المنفصلين */}
+            <ScannerAccessCard 
+               eventId={id} 
+               currentPin={eventDetails?.pin || '0000'} 
+            />
+
+            {/* إعدادات الرسائل */}
             <div className="bg-[#18181B] rounded-[2rem] border border-white/10 p-6">
                <div className="flex justify-between items-center mb-4">
                   <h3 className="font-bold">إعدادات الرسائل</h3>
@@ -132,7 +148,7 @@ export default function EventControlRoom({ params }: PageProps) {
       <MessageConfigModal />
       <EditEventModal />
       <ImportGuestsModal />
-      <WhatsAppQueueModal /> {/* ✅ الآن سيعمل بدون مشاكل */}
+      <WhatsAppQueueModal />
       
     </div>
   );

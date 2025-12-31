@@ -1,35 +1,40 @@
-'use server'
+'use server';
 
-import { createClient } from '@/app/utils/supabase/server'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js';
 
-export async function verifyEventPin(eventId: string, pin: string) {
-  const supabase = await createClient()
+// تهيئة عميل Supabase
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-  // 1. جلب الرمز المخزن في السيرفر فقط
-  const { data: event, error } = await supabase
-    .from('events')
-    .select('pin_code')
-    .eq('id', eventId)
-    .single()
+export async function verifyEventPin(eventId: string, inputPin: string) {
+  try {
+    // 1. جلب الـ PIN من قاعدة البيانات
+    const { data, error } = await supabase
+      .from('events')
+      .select('pin')
+      .eq('id', eventId)
+      .single();
 
-  if (error || !event) {
-    return { success: false, message: 'الفعالية غير موجودة' }
+    // التحقق من وجود البيانات
+    if (error || !data) {
+      return { success: false, error: 'Event not found' };
+    }
+
+    // 2. معالجة النصوص للمقارنة (إزالة المسافات والتعامل مع القيم الفارغة)
+    const dbPin = String(data.pin || '').trim();
+    const enteredPin = String(inputPin || '').trim();
+
+    // 3. المقارنة النهائية
+    if (dbPin === enteredPin) {
+      return { success: true };
+    } else {
+      return { success: false, error: 'Incorrect PIN' };
+    }
+
+  } catch (err) {
+    console.error("System Error verifying PIN:", err);
+    return { success: false, error: 'Server Error' };
   }
-
-  // 2. التحقق من الرمز
-  if (event.pin_code === pin) {
-    // 3. إنشاء "كوكي" آمن للمشرف (جلسة مؤقتة)
-    // هذا الكوكي سيسمح للمشرف بالدخول لصفحة الماسح دون طلب الرمز مجدداً
-    const cookieStore = await cookies()
-    cookieStore.set(`scanner_session_${eventId}`, 'authorized', { 
-      httpOnly: true, // يمنع الوصول إليه عبر جافاسكربت (حماية XSS)
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 12 // صلاحية 12 ساعة فقط
-    })
-    
-    return { success: true }
-  }
-
-  return { success: false, message: 'رمز الدخول غير صحيح' }
 }
