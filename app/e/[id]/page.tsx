@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { Sparkles, Send, MapPin, Calendar, Users, Briefcase } from 'lucide-react';
 
-export default function GuestRSVP({ params }: { params: { id: string } }) {
-  // ملاحظة للمبرمج: في الواقع، يتم جلب isWedding من قاعدة البيانات بناءً على params.id
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function GuestRSVP({ params }: PageProps) {
+  const { id } = use(params);
+  // ملاحظة للمبرمج: في الواقع، يتم جلب isWedding من قاعدة البيانات بناءً على id
   const [isWedding, setIsWedding] = useState(true); 
   const [submitted, setSubmitted] = useState(false);
 

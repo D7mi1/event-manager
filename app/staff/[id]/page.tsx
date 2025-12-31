@@ -42,8 +42,8 @@ export default function StaffPage({ params }: PageProps) {
     useEffect(() => { fetchData() }, [eventId])
 
     const toggleCheckIn = async (attendee: Attendee) => {
-        const newStatus = attendee.status === 'checked_in' ? 'pending' : 'checked_in'
-        const checkInTime = newStatus === 'checked_in' ? new Date().toISOString() : null
+        const newStatus = attendee.status === 'confirmed' ? 'pending' : 'confirmed'
+        const checkInTime = newStatus === 'confirmed' ? new Date().toISOString() : null
 
         setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: newStatus, check_in_time: checkInTime } : a))
         await supabase.from('attendees').update({ status: newStatus, check_in_time: checkInTime }).eq('id', attendee.id)
@@ -66,7 +66,7 @@ export default function StaffPage({ params }: PageProps) {
             name: formData.name,
             phone: phone,
             email: `${phone}@manual.com`,
-            status: 'checked_in',
+            status: 'confirmed',
             check_in_time: new Date().toISOString()
         }]).select().single()
 
@@ -121,7 +121,7 @@ export default function StaffPage({ params }: PageProps) {
                     <p className="text-xs text-orange-500 flex items-center gap-1 font-bold"><Shield size={12} /> مشرف ميداني</p>
                 </div>
                 <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
-                    {attendees.filter(a => a.status === 'checked_in').length} <span className="text-slate-400 font-normal">/ {attendees.length}</span>
+                    {attendees.filter(a => a.status === 'confirmed').length} <span className="text-slate-400 font-normal">/ {attendees.length}</span>
                 </div>
             </div>
 
@@ -142,7 +142,7 @@ export default function StaffPage({ params }: PageProps) {
                     <div className="text-center py-10 text-slate-400">لا توجد نتائج</div>
                 ) : (
                     filtered.map(att => (
-                        <div key={att.id} className={`p-4 rounded-xl border flex justify-between items-center transition shadow-sm ${att.status === 'checked_in' ? 'bg-green-50/50 border-green-200' : 'bg-white border-slate-200'}`}>
+                        <div key={att.id} className={`p-4 rounded-xl border flex justify-between items-center transition shadow-sm ${att.status === 'confirmed' ? 'bg-green-50/50 border-green-200' : 'bg-white border-slate-200'}`}>
 
                             <div className="flex-1">
                                 <h3 className="font-bold text-slate-800 mb-0.5">{att.name}</h3>
@@ -157,7 +157,7 @@ export default function StaffPage({ params }: PageProps) {
                                     </button>
                                 </div>
 
-                                {att.check_in_time && att.status === 'checked_in' && (
+                                {att.check_in_time && att.status === 'confirmed' && (
                                     <p className="text-[10px] text-green-600 flex items-center gap-1 mt-2 font-medium">
                                         <Clock size={10} /> دخل: {new Date(att.check_in_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                                     </p>
@@ -166,7 +166,7 @@ export default function StaffPage({ params }: PageProps) {
 
                             <button
                                 onClick={() => toggleCheckIn(att)}
-                                className={`w-12 h-12 rounded-full flex items-center justify-center transition shadow-sm ml-2 shrink-0 ${att.status === 'checked_in' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-slate-100 text-slate-300 hover:bg-indigo-100 hover:text-indigo-600'}`}
+                                className={`w-12 h-12 rounded-full flex items-center justify-center transition shadow-sm ml-2 shrink-0 ${att.status === 'confirmed' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-slate-100 text-slate-300 hover:bg-indigo-100 hover:text-indigo-600'}`}
                             >
                                 <CheckCircle size={24} />
                             </button>

@@ -120,11 +120,6 @@ export default function ScannerPage() {
                         container: { height: '100%', width: '100%' },
                         video: { height: '100%', objectFit: 'cover' }
                     }}
-                    components={{
-                        audio: false, // We'll handle audio manually if needed
-                        torch: true,
-                        zoom: true
-                    }}
                 />
 
                 {/* Overlay Guide */}

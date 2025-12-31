@@ -2,7 +2,7 @@
 
 import { useState, use, useEffect } from 'react'
 import { Scanner } from '@yudiel/react-qr-scanner'
-import { createClient } from '@/app/utils/supabase/client'
+import { supabase } from '@/app/utils/supabase/client'
 import { CheckCircle, XCircle, Loader2, Camera, AlertTriangle, Repeat } from 'lucide-react'
 
 interface PageProps {
@@ -19,8 +19,6 @@ export default function PublicScanner({ params }: PageProps) {
   const [pauseScan, setPauseScan] = useState(false)
   const [allowMultiple, setAllowMultiple] = useState(false)
   const [eventTitle, setEventTitle] = useState('')
-  
-  const supabase = createClient()
 
   useEffect(() => {
     const fetchEventSettings = async () => {
@@ -122,7 +120,7 @@ export default function PublicScanner({ params }: PageProps) {
             {status === 'loading' && <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 backdrop-blur-sm"><Loader2 className="animate-spin text-indigo-500 w-16 h-16"/></div>}
 
             <div className="h-full w-full relative">
-                 <Scanner onScan={(result) => { if (result && result.length > 0) handleScan(result[0].rawValue) }} allowMultiple={true} scanDelay={2000} components={{ audio: false, finder: false }} styles={{ container: { height: '100%' }, video: { objectFit: 'cover' } }} />
+                 <Scanner onScan={(result) => { if (result && result.length > 0) handleScan(result[0].rawValue) }} allowMultiple={true} scanDelay={2000} styles={{ container: { height: '100%' }, video: { objectFit: 'cover' } }} />
             </div>
             
             {status === 'idle' && (

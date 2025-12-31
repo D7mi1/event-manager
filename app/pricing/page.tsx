@@ -1,11 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/app/utils/supabase/client'
+import { supabase } from '@/app/utils/supabase/client'
 import { Check } from 'lucide-react'
 
 export default function Pricing() {
   const [packages, setPackages] = useState<any[]>([])
-  const supabase = createClient()
 
   useEffect(() => {
     const getPackages = async () => {

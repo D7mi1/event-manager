@@ -4,8 +4,7 @@ import { createClient } from '@/app/utils/supabase/server'
 import { cookies } from 'next/headers'
 
 export async function verifyEventPin(eventId: string, pin: string) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   // 1. جلب الرمز المخزن في السيرفر فقط
   const { data: event, error } = await supabase
@@ -22,7 +21,8 @@ export async function verifyEventPin(eventId: string, pin: string) {
   if (event.pin_code === pin) {
     // 3. إنشاء "كوكي" آمن للمشرف (جلسة مؤقتة)
     // هذا الكوكي سيسمح للمشرف بالدخول لصفحة الماسح دون طلب الرمز مجدداً
-    cookies().set(`scanner_session_${eventId}`, 'authorized', { 
+    const cookieStore = await cookies()
+    cookieStore.set(`scanner_session_${eventId}`, 'authorized', { 
       httpOnly: true, // يمنع الوصول إليه عبر جافاسكربت (حماية XSS)
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 12 // صلاحية 12 ساعة فقط

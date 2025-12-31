@@ -11,8 +11,8 @@ import { supabase } from '@/app/utils/supabase/client';
 import * as Sentry from '@sentry/nextjs'; // ✅ تتبع الأخطاء
 
 // ✅ استيراد الأدوات الجديدة (الكاش والتحقق)
-import { useEventWithCache } from '@/hooks/useEventWithCache';
-import { RegistrationSchema } from '@/app/utils/schemas';
+import { useEventWithCache } from '@/app/hooks/useEventWithCache';
+import { registrationSchema } from '@/app/utils/schemas';
 import { validateData } from '@/app/utils/schemas';
 
 // بيانات دول الخليج
@@ -33,7 +33,7 @@ export default function RegistrationPage({ params }: PageProps) {
 
   // ✅ 1. استخدام SWR للكاش (سرعة تحميل فورية)
   // بدلاً من useEffect و useState المعقدة
-  const { event, isLoading, isError } = useEventWithCache(id);
+  const { event, loading, error } = useEventWithCache(id);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -56,14 +56,14 @@ export default function RegistrationPage({ params }: PageProps) {
     const fullPhone = selectedCountry.code + formData.phone;
     
     // استخدام دالة validateData المساعدة التي بنيناها
-    const result = validateData(RegistrationSchema, {
+    const result = validateData(registrationSchema, {
       name: formData.name,
       email: formData.email,
       phone: fullPhone
     });
 
-    if (!result.success && result.errors) {
-      setValidationErrors(result.errors);
+    if (!result.success && result.error) {
+      setValidationErrors({ form: result.error });
       return false;
     }
 
@@ -118,10 +118,10 @@ export default function RegistrationPage({ params }: PageProps) {
   };
 
   // Loading State
-  if (isLoading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-[#C19D65]" /></div>;
+  if (loading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-[#C19D65]" /></div>;
   
   // Error State (SWR Error)
-  if (isError || !event) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center text-white">الفعالية غير موجودة أو حدث خطأ في الاتصال</div>;
+  if (error || !event) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center text-white">الفعالية غير موجودة أو حدث خطأ في الاتصال</div>;
 
   return (
     <div className="min-h-screen bg-[#0A0A0C] font-sans relative flex flex-col items-center justify-center p-6" dir="rtl">

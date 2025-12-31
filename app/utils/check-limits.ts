@@ -1,7 +1,6 @@
-import { createClient } from '@/app/utils/supabase/client'
+import { supabase } from '@/app/utils/supabase/client'
 
 export async function checkEventLimit() {
-  const supabase = createClient()
   
   // 1. مين المستخدم؟
   const { data: { user } } = await supabase.auth.getUser()

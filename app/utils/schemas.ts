@@ -96,8 +96,8 @@ export const validateData = <T>(schema: z.ZodSchema<T>, data: unknown): { succes
     const validatedData = schema.parse(data);
     return { success: true, data: validatedData };
   } catch (error) {
-    if (error instanceof z.ZodError && error.errors) {
-      const errorMessage = (error.errors || [])
+    if (error instanceof z.ZodError && error.issues) {
+      const errorMessage = (error.issues || [])
         .map((err: any) => {
           const path = err.path && err.path.length > 0 ? err.path.join('.') + ': ' : '';
           return `${path}${err.message}`;

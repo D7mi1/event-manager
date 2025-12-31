@@ -12,16 +12,9 @@ export const initializeSentry = () => {
     console.warn('Sentry DSN not configured. Error tracking is disabled.');
     return;
   }
-
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: process.env.NODE_ENV,
-    integrations: [
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     replaysOnErrorSampleRate: 1.0,

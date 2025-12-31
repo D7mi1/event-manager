@@ -232,7 +232,7 @@ export default function TicketPage({ params }: PageProps) {
   };
 
   const seatInfo = ticket.seats?.[0];
-  const showSeatInfo = ticket.events?.has_seating && seatInfo;
+  const showSeatInfo = ticket.events && seatInfo;
 
   return (
     <div
@@ -323,7 +323,7 @@ export default function TicketPage({ params }: PageProps) {
 
       {/* ✅ --- RSVP Section (تأكيد الحضور) --- */}
       <div className="w-full max-w-[380px] mb-4">
-        {ticket.status === 'invited' && (
+        {ticket.status === 'pending' && (
           <div className="bg-[#18181B] border border-[#C19D65] p-5 rounded-2xl text-center shadow-[0_0_30px_rgba(193,157,101,0.15)] animate-in slide-in-from-bottom-4">
              <h3 className="text-lg font-bold text-white mb-1">هل ستشرفنا بالحضور؟ ✨</h3>
              <p className="text-xs text-white/50 mb-4">تأكيدك يساعدنا في الترتيب</p>

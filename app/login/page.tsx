@@ -101,7 +101,7 @@ export default function AuthPage() {
     if (isSignUp && !interest) { setError("يرجى اختيار نوع اهتمامك أولاً"); return; }
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback`, data: { interest, full_name: 'مستخدم مِراس' } },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 
