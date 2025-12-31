@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { supabase } from '@/app/utils/supabase/client';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { Loader2, ScanLine, Lock, CheckCircle2, XCircle, Download } from 'lucide-react';
+import { Loader2, ScanLine, Lock, CheckCircle2, XCircle, Download, Copy, Check } from 'lucide-react';
 import { verifyEventPin } from '@/app/actions/verifyPin';
 
 interface PageProps { params: Promise<{ id: string }>; }
@@ -17,6 +17,7 @@ export default function ScannerPage({ params }: PageProps) {
   const [pin, setPin] = useState('');
   const [showEditPin, setShowEditPin] = useState(false);
   const [newPin, setNewPin] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
   
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -80,6 +81,14 @@ export default function ScannerPage({ params }: PageProps) {
     setShowEditPin(false);
   };
 
+  // --- 3.7 نسخ رابط الماسح ---
+  const handleCopyScannerLink = async () => {
+    const link = `${window.location.origin}/scan/${id}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   // --- 4. دالة المسح مع التغذية الراجعة ---
   const onScan = async (detectedCodes: any[]) => {
     if (detectedCodes.length === 0) return;
@@ -140,6 +149,20 @@ export default function ScannerPage({ params }: PageProps) {
                  {loading ? <Loader2 className="animate-spin mx-auto"/> : 'دخول'}
               </button>
            </form>
+
+           {/* عرض رابط الماسح */}
+           <div className="bg-[#18181B] border border-white/10 rounded-xl p-4 space-y-3">
+             <p className="text-xs text-white/50">رابط الماسح الضوئي</p>
+             <div className="flex gap-2 items-center">
+               <input type="text" readOnly value={`${typeof window !== 'undefined' ? window.location.origin : ''}/scan/${id}`}
+                 className="flex-1 bg-[#27272A] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 font-mono truncate outline-none" />
+               <button type="button" onClick={handleCopyScannerLink}
+                 className="p-2 bg-[#27272A] hover:bg-[#3F3F46] rounded-lg transition">
+                 {copiedLink ? <Check size={18} className="text-green-500"/> : <Copy size={18} className="text-white/60"/>}
+               </button>
+             </div>
+             {copiedLink && <p className="text-xs text-green-500">✅ تم نسخ الرابط!</p>}
+           </div>
            
            {/* زر تثبيت التطبيق */}
            {deferredPrompt && (
@@ -227,6 +250,13 @@ export default function ScannerPage({ params }: PageProps) {
 
       <div className="bg-[#18181B] p-6 pb-10 text-center rounded-t-[2rem] border-t border-white/10 z-20">
          <p className="text-sm text-white/50 mb-4">وجّه الكاميرا نحو باركود التذكرة</p>
+         <div className="flex gap-2 mb-4 items-center bg-[#27272A] rounded-lg p-3">
+           <input type="text" readOnly value={`/scan/${id}`}
+             className="flex-1 bg-transparent text-xs text-white/60 font-mono outline-none" />
+           <button onClick={handleCopyScannerLink} className="p-2 hover:bg-[#3F3F46] rounded transition">
+             {copiedLink ? <Check size={16} className="text-green-500"/> : <Copy size={16} className="text-white/60"/>}
+           </button>
+         </div>
          <div className="flex gap-3">
            <button onClick={handleLogout} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-bold hover:bg-red-500/30">
              🚪 خروج
