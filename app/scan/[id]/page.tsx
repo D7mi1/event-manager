@@ -15,6 +15,8 @@ export default function ScannerPage({ params }: PageProps) {
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState('');
+  const [showEditPin, setShowEditPin] = useState(false);
+  const [newPin, setNewPin] = useState('');
   
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -56,6 +58,26 @@ export default function ScannerPage({ params }: PageProps) {
       if (navigator.vibrate) navigator.vibrate(500); // اهتزاز طويل عند الخطأ
     }
     setLoading(false);
+  };
+
+  // --- 3.5 تعديل PIN code ---
+  const handleChangePin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPin.length < 4) {
+      alert('الرمز يجب أن يكون 4 أرقام على الأقل');
+      return;
+    }
+    setPin(newPin);
+    setNewPin('');
+    setShowEditPin(false);
+    alert('تم تحديث رمز الدخول ✅');
+  };
+
+  // --- 3.6 الخروج من وضع الماسح ---
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPin('');
+    setShowEditPin(false);
   };
 
   // --- 4. دالة المسح مع التغذية الراجعة ---
@@ -135,8 +157,13 @@ export default function ScannerPage({ params }: PageProps) {
     <div className="min-h-screen bg-black text-white relative flex flex-col">
       <div className="absolute top-0 left-0 w-full z-20 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
          <h2 className="font-bold flex items-center gap-2"><ScanLine size={20} className="text-[#C19D65]"/> الماسح النشط</h2>
-         <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-mono flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> LIVE
+         <div className="flex items-center gap-3">
+           <button onClick={() => setShowEditPin(true)} className="bg-[#27272A] hover:bg-[#3F3F46] px-3 py-1 rounded-lg text-xs font-bold transition">
+             🔐 تعديل PIN
+           </button>
+           <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-mono flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> LIVE
+           </div>
          </div>
       </div>
 
@@ -163,12 +190,50 @@ export default function ScannerPage({ params }: PageProps) {
                </div>
             </div>
          )}
+
+         {/* مودال تعديل PIN */}
+         {showEditPin && (
+           <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+             <div className="bg-[#18181B] border border-white/10 rounded-2xl p-8 w-full max-w-sm mx-4">
+               <h3 className="text-xl font-bold text-white mb-6 text-center">تعديل رمز الدخول</h3>
+               <form onSubmit={handleChangePin} className="space-y-4">
+                 <div>
+                   <label className="text-xs text-white/50 mb-2 block">الرمز الحالي</label>
+                   <input type="password" inputMode="numeric" maxLength={4} value={pin}
+                     disabled className="w-full bg-[#27272A] border border-white/10 rounded-lg py-3 text-center text-2xl font-mono outline-none opacity-50" />
+                 </div>
+                 <div>
+                   <label className="text-xs text-white/50 mb-2 block">الرمز الجديد</label>
+                   <input type="password" inputMode="numeric" maxLength={4} value={newPin}
+                     onChange={(e) => setNewPin(e.target.value)}
+                     placeholder="****" className="w-full bg-[#27272A] border border-white/10 rounded-lg py-3 text-center text-2xl font-mono tracking-[0.5em] outline-none focus:border-[#C19D65]" />
+                 </div>
+                 <div className="flex gap-3 pt-4">
+                   <button type="button" onClick={() => { setShowEditPin(false); setNewPin(''); }}
+                     className="flex-1 py-3 bg-[#27272A] rounded-lg text-white font-bold hover:bg-[#3F3F46]">
+                     إلغاء
+                   </button>
+                   <button type="submit"
+                     disabled={newPin.length < 4}
+                     className="flex-1 py-3 bg-[#C19D65] rounded-lg text-black font-bold hover:brightness-110 disabled:opacity-50">
+                     تحديث
+                   </button>
+                 </div>
+               </form>
+             </div>
+           </div>
+         )}
       </div>
 
       <div className="bg-[#18181B] p-6 pb-10 text-center rounded-t-[2rem] border-t border-white/10 z-20">
-         <p className="text-sm text-white/50 mb-2">وجّه الكاميرا نحو باركود التذكرة</p>
-         <div className="inline-flex items-center gap-2 text-[10px] text-white/30 bg-white/5 px-3 py-1 rounded-full">
-            <Lock size={10} /> الاتصال آمن ومحمي
+         <p className="text-sm text-white/50 mb-4">وجّه الكاميرا نحو باركود التذكرة</p>
+         <div className="flex gap-3">
+           <button onClick={handleLogout} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-bold hover:bg-red-500/30">
+             🚪 خروج
+           </button>
+           <div className="flex-1 inline-flex items-center justify-center gap-2 text-[10px] text-white/30 bg-white/5 px-3 py-2 rounded-lg">
+              <Lock size={10} /> آمن
+           </div>
          </div>
       </div>
     </div>
