@@ -253,8 +253,16 @@ export default function ScannerPage({ params }: PageProps) {
          <div className="flex gap-2 mb-4 items-center bg-[#27272A] rounded-lg p-3">
            <input type="text" readOnly value={`/scan/${id}`}
              className="flex-1 bg-transparent text-xs text-white/60 font-mono outline-none" />
-           <button onClick={handleCopyScannerLink} className="p-2 hover:bg-[#3F3F46] rounded transition">
+           <button onClick={handleCopyScannerLink} className="p-2 hover:bg-[#3F3F46] rounded transition" title="نسخ الرابط">
              {copiedLink ? <Check size={16} className="text-green-500"/> : <Copy size={16} className="text-white/60"/>}
+           </button>
+         </div>
+         <div className="flex gap-2 mb-3">
+           <button className="flex-1 py-2 bg-[#27272A] text-white rounded-lg text-sm font-bold hover:bg-[#3F3F46] transition">
+             🔐 PIN: {pin}
+           </button>
+           <button onClick={() => setShowEditPin(true)} className="flex-1 py-2 bg-[#C19D65]/20 text-[#C19D65] rounded-lg text-sm font-bold hover:bg-[#C19D65]/30 transition">
+             ✏️ تعديل
            </button>
          </div>
          <div className="flex gap-3">
