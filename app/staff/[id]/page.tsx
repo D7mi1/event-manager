@@ -83,7 +83,7 @@ export default function StaffPage({ params }: PageProps) {
 
     const openEditModal = (attendee: Attendee) => {
         setSelectedAttendee(attendee)
-        setFormData({ name: attendee.name, phone: attendee.phone })
+        setFormData({ name: attendee.name, phone: attendee.phone || '' })
         setShowEditModal(true)
     }
 
@@ -107,7 +107,7 @@ export default function StaffPage({ params }: PageProps) {
         setProcessing(false)
     }
 
-    const filtered = attendees.filter(a => a.name.toLowerCase().includes(search.toLowerCase()) || a.phone.includes(search))
+    const filtered = attendees.filter(a => a.name.toLowerCase().includes(search.toLowerCase()) || (a.phone && a.phone.includes(search)))
 
     if (loading) return <div className="min-h-screen flex justify-center items-center bg-slate-50"><Loader2 className="animate-spin text-indigo-600" /></div>
 
