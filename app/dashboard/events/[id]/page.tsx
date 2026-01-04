@@ -105,6 +105,10 @@ export default function EventControlRoom({ params }: PageProps) {
            <Link href={`/dashboard/events/${id}/seating`} className="px-4 py-2.5 bg-[#27272A] rounded-xl text-sm font-bold hover:bg-[#3F3F46] border border-white/10">
               🪑 المخطط
            </Link>
+           
+           <Link href={`/dashboard/events/${id}/design`} className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-sm font-bold hover:from-purple-700 hover:to-pink-700 border border-purple-400/30 transition-all">
+              🎨 التصميم
+           </Link>
         </div>
       </div>
 
