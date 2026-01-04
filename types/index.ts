@@ -16,7 +16,8 @@ export interface Event {
     guests_count?: number;
     is_registration_open?: boolean;
     description?: string;
-    cover_image?: string;
+    image_url?: string; // ✅ تم التعديل ليطابق قاعدة البيانات
+    theme_color?: string; // ✅ أضفته لأننا نستخدمه في التذكرة لتحديد اللون
 }
 
 export interface Table {
@@ -36,17 +37,15 @@ export interface Attendee {
     id: string;
     created_at: string;
     event_id: string;
-    name: string;
-    email: string;
-    phone: string;
+    name: string; // اسم الضيف
+    email?: string; // جعلته اختياري لأن بعض الضيوف قد لا نملك ايميلاتهم
+    phone?: string;
     status: AttendeeStatus;
     check_in_time?: string | null;
     attended?: boolean;
-    eventName?: string;
-    events?: Event;
-    seats?: Seat[];
+    events?: Event; // العلاقة مع الفعالية
+    seats?: Seat[]; // العلاقة مع المقاعد
     regret_reason?: string;
-    qr_code?: string;
 }
 
 export interface Memory {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
-import { Attendee } from '@/types';
+import { supabase } from '@/app/utils/supabase/client'; // تأكد من المسار
+import { Attendee } from '@/types'; // تأكد من المسار
 
 interface UseTicketReturn {
   ticket: Attendee | null;
@@ -25,16 +25,22 @@ export function useTicket(id: string): UseTicketReturn {
       setLoading(true);
       setError(null);
 
+      // 1. التعديل هنا: اسم الجدول tickets بدلاً من attendees
       const { data, error: fetchError } = await supabase
-        .from('attendees')
+        .from('tickets') 
         .select(`
-          *, 
-          events(*), 
-          seats (
-            seat_number,
-            table:tables (name, shape)
+          *,
+          events:event_id (
+            id,
+            name,
+            date,
+            location_name,
+            image_url,
+            type,
+            theme_color
           )
         `)
+        // ملاحظة: قمت بإزالة seats مؤقتاً لأننا لم ننشئ جدولها بعد لتجنب الخطأ
         .eq('id', id)
         .single();
 
@@ -46,7 +52,10 @@ export function useTicket(id: string): UseTicketReturn {
         throw new Error('لم يتم العثور على التذكرة');
       }
 
-      setTicket(data);
+      // تحويل البيانات لتطابق الـ Type إذا لزم الأمر
+      // (Supabase يرجع البيانات حسب هيكل القاعدة، تأكد أن events تأتي كـ Object)
+      setTicket(data as unknown as Attendee);
+      
     } catch (err) {
       const message = err instanceof Error ? err.message : 'حدث خطأ غير متوقع';
       setError(message);
@@ -71,8 +80,9 @@ export function useTicket(id: string): UseTicketReturn {
         updateData.regret_reason = reason;
       }
 
+      // 2. التعديل هنا أيضاً: اسم الجدول tickets
       const { error: updateError } = await supabase
-        .from('attendees')
+        .from('tickets')
         .update(updateData)
         .eq('id', id);
 
@@ -80,6 +90,7 @@ export function useTicket(id: string): UseTicketReturn {
         throw new Error(updateError.message);
       }
 
+      // تحديث الحالة محلياً
       setTicket({ ...ticket, status: newStatus as any });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'فشل تحديث الحالة';
