@@ -1,8 +1,8 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
 
-// تهيئة عميل Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,31 +10,33 @@ const supabase = createClient(
 
 export async function verifyEventPin(eventId: string, inputPin: string) {
   try {
-    // 1. جلب الـ PIN من قاعدة البيانات
+    // 1. جلب PIN المشفر
     const { data, error } = await supabase
       .from('events')
-      .select('pin')
+      .select('pin_hash') // ⚠️ غيّر اسم العمود من pin إلى pin_hash
       .eq('id', eventId)
       .single();
 
-    // التحقق من وجود البيانات
     if (error || !data) {
       return { success: false, error: 'Event not found' };
     }
 
-    // 2. معالجة النصوص للمقارنة (إزالة المسافات والتعامل مع القيم الفارغة)
-    const dbPin = String(data.pin || '').trim();
-    const enteredPin = String(inputPin || '').trim();
+    // 2. مقارنة مشفرة
+    const isValid = await bcrypt.compare(inputPin, data.pin_hash);
 
-    // 3. المقارنة النهائية
-    if (dbPin === enteredPin) {
+    if (isValid) {
       return { success: true };
     } else {
       return { success: false, error: 'Incorrect PIN' };
     }
-
   } catch (err) {
-    console.error("System Error verifying PIN:", err);
+    console.error('System Error verifying PIN:', err);
     return { success: false, error: 'Server Error' };
   }
+}
+
+// ✅ دالة جديدة لإنشاء PIN مشفر (تستخدمها عند إنشاء Event)
+export async function hashPin(pin: string): Promise<string> {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(pin, salt);
 }

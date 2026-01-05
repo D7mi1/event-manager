@@ -7,6 +7,9 @@ interface LimitCheck {
   message?: string;
 }
 
+/**
+ * التحقق من حد الضيوف للمستخدم
+ */
 export async function checkGuestsLimit(userId: string): Promise<LimitCheck> {
   const supabase = await createClient();
 
@@ -23,7 +26,7 @@ export async function checkGuestsLimit(userId: string): Promise<LimitCheck> {
       allowed: false,
       remaining: 0,
       limit: 50,
-      message: 'يرجى الاشتراك في باقة مدفوعة'
+      message: 'يرجى الاشتراك في باقة مدفوعة لإضافة المزيد من الضيوف'
     };
   }
 
@@ -34,7 +37,7 @@ export async function checkGuestsLimit(userId: string): Promise<LimitCheck> {
       allowed: false,
       remaining: 0,
       limit: sub.guests_limit,
-      message: `لقد وصلت للحد الأقصى (${sub.guests_limit} ضيف)`
+      message: `لقد وصلت للحد الأقصى (${sub.guests_limit} ضيف). يرجى الترقية للباقة الأعلى.`
     };
   }
 
@@ -45,10 +48,33 @@ export async function checkGuestsLimit(userId: string): Promise<LimitCheck> {
   };
 }
 
-export async function incrementGuestsUsed(userId: string, count: number = 1): Promise<boolean> {
+/**
+ * زيادة عداد الضيوف المستخدمين
+ */
+export async function incrementGuestsUsed(
+  userId: string,
+  count: number = 1
+): Promise<boolean> {
   const supabase = await createClient();
 
   const { error } = await supabase.rpc('increment_guests_used', {
+    p_user_id: userId,
+    p_count: count
+  });
+
+  return !error;
+}
+
+/**
+ * تقليل عداد الضيوف (عند الحذف)
+ */
+export async function decrementGuestsUsed(
+  userId: string,
+  count: number = 1
+): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc('decrement_guests_used', {
     p_user_id: userId,
     p_count: count
   });
