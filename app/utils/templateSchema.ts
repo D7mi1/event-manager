@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 /**
  * Template Design System - نظام التصاميم
- * للزواجات والفعاليات
+ * لفعاليات الأعمال والمؤتمرات
  */
 
 // Design Element Schema
@@ -47,7 +47,7 @@ export const templateSchema = z.object({
   event_id: z.string().uuid(),
   template_name: z.string().min(3).max(50),
   template_type: z.enum(['ticket', 'email', 'certificate', 'invitation']),
-  template_category: z.enum(['wedding', 'corporate', 'birthday', 'other']),
+  template_category: z.enum(['corporate', 'conference', 'exhibition', 'other']),
   
   // Design properties
   width: z.number().default(400),
@@ -72,7 +72,7 @@ export const presetTemplateSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
-  category: z.enum(['wedding', 'corporate', 'birthday', 'other']),
+  category: z.enum(['corporate', 'conference', 'exhibition', 'other']),
   template_type: z.enum(['ticket', 'email', 'certificate', 'invitation']),
   thumbnail_url: z.string(),
   design_json: z.unknown() as z.ZodType<Record<string, unknown>>,
@@ -95,44 +95,44 @@ export const ARABIC_FONTS = [
   { name: 'Cairo', value: 'Cairo' },
 ] as const
 
-// Wedding-specific colors
-export const WEDDING_COLORS = [
-  '#FFD700', // Gold
-  '#C0C0C0', // Silver
-  '#8B0000', // Deep Red
+// Business event colors
+export const BUSINESS_COLORS = [
+  '#3B82F6', // Blue
+  '#1E40AF', // Dark Blue
+  '#0F172A', // Navy
   '#2F4F4F', // Dark Slate
-  '#FFB6C1', // Light Pink
-  '#FFF8DC', // Cornsilk
+  '#C0C0C0', // Silver
   '#000000', // Black
   '#FFFFFF', // White
-  '#D4AF37', // Gold (Dark)
-  '#E6E6FA', // Lavender
+  '#1D4ED8', // Royal Blue
+  '#059669', // Emerald
+  '#7C3AED', // Violet
 ] as const
 
-// Preset Wedding Designs
-export const WEDDING_PRESETS = {
-  TRADITIONAL_ISLAMIC: {
-    name: 'Traditional Islamic',
-    description: 'تصميم إسلامي تقليدي فاخر',
-    colors: ['#8B0000', '#FFD700', '#FFFFFF'],
-    fonts: ['GE Dinar One', 'Droid Arabic Naskh'],
-  },
-  MODERN_ELEGANT: {
-    name: 'Modern Elegant',
-    description: 'تصميم حديث أنيق',
-    colors: ['#2F4F4F', '#C0C0C0', '#FFFFFF'],
+// Preset Business Designs
+export const BUSINESS_PRESETS = {
+  CORPORATE_MODERN: {
+    name: 'Corporate Modern',
+    description: 'تصميم مؤسسي حديث',
+    colors: ['#3B82F6', '#0F172A', '#FFFFFF'],
     fonts: ['Cairo', 'Almarai'],
   },
-  LUXURY_GOLD: {
-    name: 'Luxury Gold',
-    description: 'ذهبي فاخر',
-    colors: ['#D4AF37', '#2F4F4F', '#FFFFFF'],
-    fonts: ['GE Dinar One', 'Droid Arabic Kufi'],
+  EXECUTIVE_CLASSIC: {
+    name: 'Executive Classic',
+    description: 'كلاسيكي تنفيذي',
+    colors: ['#1E40AF', '#C0C0C0', '#FFFFFF'],
+    fonts: ['GE Dinar One', 'Droid Arabic Naskh'],
   },
-  FLORAL_GARDEN: {
-    name: 'Floral Garden',
-    description: 'حديقة زهور',
-    colors: ['#FFB6C1', '#2F4F4F', '#FFFFFF'],
+  TECH_MINIMAL: {
+    name: 'Tech Minimal',
+    description: 'تقني بسيط',
+    colors: ['#7C3AED', '#0F172A', '#FFFFFF'],
+    fonts: ['IBM Plex Sans Arabic', 'Almarai'],
+  },
+  CONFERENCE_BOLD: {
+    name: 'Conference Bold',
+    description: 'مؤتمرات جريئة',
+    colors: ['#059669', '#000000', '#FFFFFF'],
     fonts: ['Cairo', 'Mada'],
   },
   MINIMALIST: {
@@ -143,4 +143,4 @@ export const WEDDING_PRESETS = {
   },
 } as const
 
-export type WeddingPreset = keyof typeof WEDDING_PRESETS
+export type BusinessPreset = keyof typeof BUSINESS_PRESETS

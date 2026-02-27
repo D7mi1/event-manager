@@ -1,4 +1,4 @@
-import { middleware } from '../middleware';
+import { middleware } from '@/app/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Mock Supabase

@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import readXlsxFile from 'read-excel-file';
 import { useEventStore } from '@/store/eventStore';
 import { X, UploadCloud, AlertTriangle, CheckCircle, FileSpreadsheet } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function ImportGuestsModal() {
   const { isImportModalOpen, toggleImportModal, bulkAddGuests } = useEventStore();
@@ -59,7 +60,7 @@ export function ImportGuestsModal() {
     const validGuests = previewData.filter(d => d.isValid).map(({ name, phone, category }) => ({
       name, phone, category
     }));
-    if (validGuests.length === 0) return alert('لا توجد بيانات صالحة');
+    if (validGuests.length === 0) return toast.warning('لا توجد بيانات صالحة');
 
     setIsSubmitting(true);
     await bulkAddGuests(validGuests);

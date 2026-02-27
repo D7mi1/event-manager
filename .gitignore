@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp build/lint output
+build-log.txt
+build-output.txt
+lint-log.txt
+eslint-output.json
+full_project_code.txt
+full_schema_utf8.txt
+repomix-output.xml

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/app/utils/supabase/client';
-import { Crown, Zap, MessageCircle, Users, AlertTriangle, Lock, ArrowUpRight, Loader2 } from 'lucide-react';
+import { Crown, Zap, MessageCircle, Users, AlertTriangle, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { PLANS, type PlanId } from '@/lib/billing/plans';
 
 export default function SubscriptionTracker() {
   const [loading, setLoading] = useState(true);
@@ -13,18 +14,33 @@ export default function SubscriptionTracker() {
     const fetchSub = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', user.id)
+        // جلب البروفايل لمعرفة الخطة الفعلية
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan_id, subscription_status, subscription_period_end')
+          .eq('id', user.id)
           .single();
-        
-        // إذا لم يوجد سجل، نضع قيم افتراضية للباقة المجانية
-        setSub(data || { 
-          plan_tier: 'free', 
-          guests_limit: 50, guests_used: 0,
-          messages_limit: 0, messages_used: 0,
-          renews_at: new Date(Date.now() + 30*24*60*60*1000).toISOString()
+
+        const planId: PlanId = (profile?.plan_id && profile.plan_id in PLANS)
+          ? (profile.plan_id as PlanId)
+          : 'free';
+        const plan = PLANS[planId];
+
+        // جلب عدد الضيوف الفعلي من قاعدة البيانات
+        const { count: guestsUsed } = await supabase
+          .from('attendees')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        setSub({
+          plan_tier: planId,
+          plan_name: plan.nameAr,
+          guests_limit: plan.limits.maxGuestsPerEvent,
+          guests_used: guestsUsed || 0,
+          messages_limit: plan.limits.whatsappMessages,
+          messages_used: 0,
+          renews_at: profile?.subscription_period_end
+            || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         });
       }
       setLoading(false);
@@ -63,8 +79,8 @@ export default function SubscriptionTracker() {
             تجديد الرصيد: {new Date(sub.renews_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long' })}
           </p>
         </div>
-        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-wider text-white/60">
-          {sub.plan_tier === 'free' ? 'Personal Plan' : sub.plan_tier === 'pro' ? 'PRO Plan' : 'Developed'}
+        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold tracking-wider text-white/60">
+          {sub.plan_name || 'المجانية'}
         </div>
       </div>
 
@@ -89,7 +105,7 @@ export default function SubscriptionTracker() {
                <p className="text-[10px] font-bold text-red-400 leading-tight">لقد اقتربت من الحد الأقصى!</p>
                <p className="text-[9px] text-red-400/60 mt-1">رقِ باقتك الآن لضمان دخول جميع ضيوفك بلا توقف.</p>
              </div>
-             <Link href="/dashboard/settings" className="mr-auto text-[9px] bg-red-500 text-white px-2 py-1 rounded font-bold hover:bg-red-600">ترقية</Link>
+             <Link href="/pricing" className="mr-auto text-[9px] bg-red-500 text-white px-2 py-1 rounded font-bold hover:bg-red-600">ترقية</Link>
           </div>
         )}
       </div>
@@ -119,8 +135,8 @@ export default function SubscriptionTracker() {
 
       {/* زر الترقية العام */}
       {isFreePlan && (
-        <Link 
-          href="/dashboard/settings"
+        <Link
+          href="/pricing"
           className="mt-6 w-full py-3 bg-[#C19D65] hover:bg-[#b08d55] text-black rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-[0_4px_20px_rgba(193,157,101,0.2)]"
         >
           <Crown size={14} /> ترقية الحساب بالكامل

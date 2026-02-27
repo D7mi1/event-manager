@@ -20,11 +20,12 @@ export const STATUS_TYPES = {
   DECLINED: 'declined',
 } as const;
 
-// Event Types
+// Event Types - Business focused
 export const EVENT_TYPES = {
-  WEDDING: 'wedding',
+  CONFERENCE: 'conference',
+  WORKSHOP: 'workshop',
+  EXHIBITION: 'exhibition',
   BUSINESS: 'business',
-  OTHER: 'other',
 } as const;
 
 // Error Messages

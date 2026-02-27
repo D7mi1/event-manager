@@ -1,8 +1,19 @@
 // types/index.ts
+// المصدر الوحيد لجميع أنواع البيانات في المشروع
 
-export type EventType = 'business' | 'wedding' | 'other';
+// ============================================
+// Enums & Union Types
+// ============================================
+
+export type EventType = 'conference' | 'workshop' | 'exhibition' | 'business';
 export type EventStatus = 'active' | 'draft';
 export type AttendeeStatus = 'pending' | 'confirmed' | 'declined';
+export type GuestType = 'vip' | 'standard' | 'media' | 'staff';
+export type TableShape = 'round' | 'rectangular' | 'square';
+
+// ============================================
+// Core Interfaces
+// ============================================
 
 export interface Event {
     id: string;
@@ -16,35 +27,23 @@ export interface Event {
     guests_count?: number;
     is_registration_open?: boolean;
     description?: string;
-    image_url?: string; // ✅ تم التعديل ليطابق قاعدة البيانات
-    theme_color?: string; // ✅ أضفته لأننا نستخدمه في التذكرة لتحديد اللون
-}
-
-export interface Table {
-    id: string;
-    name: string;
-    shape: 'round' | 'rectangular' | 'square';
-}
-
-export interface Seat {
-    id: string;
-    seat_number: string;
-    table?: Table;
-    occupied?: boolean;
+    image_url?: string;
+    theme_color?: string;
 }
 
 export interface Attendee {
     id: string;
     created_at: string;
     event_id: string;
-    name: string; // اسم الضيف
-    email?: string; // جعلته اختياري لأن بعض الضيوف قد لا نملك ايميلاتهم
+    name: string;
+    email?: string;
     phone?: string;
     status: AttendeeStatus;
+    guest_type?: GuestType;
     check_in_time?: string | null;
     attended?: boolean;
-    events?: Event; // العلاقة مع الفعالية
-    seats?: Seat[]; // العلاقة مع المقاعد
+    events?: Event;
+    seats?: Seat[];
     regret_reason?: string;
 }
 
@@ -57,10 +56,56 @@ export interface Memory {
     attendee?: Attendee;
 }
 
+// ============================================
+// Seating Interfaces (موحد من types/supabase.ts)
+// ============================================
+
+export interface Table {
+    id: string;
+    event_id?: string;
+    name: string;
+    shape: TableShape;
+    capacity?: number;
+    x?: number;
+    y?: number;
+    rotation?: number;
+    seats?: Seat[];
+}
+
+export interface Seat {
+    id: string;
+    table_id?: string;
+    seat_number: string | number;
+    table?: Table;
+    attendee_id?: string | null;
+    occupied?: boolean;
+    attendee?: {
+        name: string;
+        category?: string;
+    };
+}
+
+// ============================================
+// API Response Types
+// ============================================
+
 export interface ApiResponse<T> {
     data?: T;
     error?: {
         message: string;
         code: string;
     };
+}
+
+export interface ApiErrorResponse {
+    error: string;
+    code?: string;
+    details?: Record<string, string[]>;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
 }

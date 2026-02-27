@@ -4,6 +4,7 @@ import { useEffect, useState, use } from 'react'
 import { supabase } from '@/app/utils/supabase/client'
 import { Search, CheckCircle, Clock, Plus, Loader2, X, Shield, Trash2, Edit, Save, UserPlus } from 'lucide-react'
 import { Attendee } from '@/types'
+import { toast } from 'sonner'
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -53,7 +54,7 @@ export default function StaffPage({ params }: PageProps) {
         if (!confirm('⚠️ هل أنت متأكد من حذف هذا الاسم نهائياً من القائمة؟')) return
         const { error } = await supabase.from('attendees').delete().eq('id', id)
         if (!error) setAttendees(prev => prev.filter(a => a.id !== id))
-        else alert('حدث خطأ أثناء الحذف')
+        else toast.error('حدث خطأ أثناء الحذف')
     }
 
     const handleAdd = async (e: React.FormEvent) => {
@@ -74,9 +75,9 @@ export default function StaffPage({ params }: PageProps) {
             setAttendees([data, ...attendees])
             setShowAddModal(false)
             setFormData({ name: '', phone: '' })
-            alert('✅ تم التحضير بنجاح')
+            toast.success('تم التحضير بنجاح')
         } else {
-            alert('❌ خطأ: قد يكون الرقم مسجلاً مسبقاً')
+            toast.error('خطأ: قد يكون الرقم مسجلا مسبقا')
         }
         setProcessing(false)
     }
@@ -102,7 +103,7 @@ export default function StaffPage({ params }: PageProps) {
             setShowEditModal(false)
             setSelectedAttendee(null)
         } else {
-            alert('فشل التعديل')
+            toast.error('فشل التعديل')
         }
         setProcessing(false)
     }

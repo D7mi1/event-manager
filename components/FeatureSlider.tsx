@@ -1,17 +1,11 @@
-import { Smartphone, QrCode, BarChart3, ShieldCheck, Heart, Users, CalendarCheck, Presentation } from 'lucide-react';
+import { Smartphone, QrCode, BarChart3, Send } from 'lucide-react';
 
-export default function FeatureSlider({ isWedding }: { isWedding: boolean }) {
-  // محتوى ديناميكي بناءً على الاختيار
-  const features = isWedding ? [
-    { icon: Heart, title: "دعوات العائلة", desc: "أرسل كرت الزواج عبر واتساب بلمسة فخمة." },
-    { icon: QrCode, title: "تنظيم الدخول", desc: "باركود خاص لكل ضيف يمنع الازدحام." },
-    { icon: Users, title: "إدارة الطاولات", desc: "توزيع ذكي للضيوف حسب المجموعات." },
-    { icon: CalendarCheck, title: "تذكير آلي", desc: "رسائل تذكير قبل ليلة العمر بـ 24 ساعة." },
-  ] : [
-    { icon: Presentation, title: "تسجيل المؤتمرات", desc: "نظام تسجيل احترافي للمشاركين والشركاء." },
-    { icon: QrCode, title: "طباعة البطاقات", desc: "إصدار بطاقات التعريف (Badges) فور الوصول." },
-    { icon: BarChart3, title: "تقارير الحضور", desc: "إحصائيات دقيقة للحضور والغياب لحظياً." },
-    { icon: Smartphone, title: "تطبيق المنظم", desc: "تحكم كامل في الفعالية من جوالك." },
+export default function FeatureSlider() {
+  const features = [
+    { icon: Send, title: "دعوات ذكية", desc: "أرسل دعوات مصممة عبر واتساب أو إيميل لكل ضيف تلقائياً." },
+    { icon: QrCode, title: "باركود لكل ضيف", desc: "كل ضيف يحصل على باركود فريد لدخول سلس ومنظم." },
+    { icon: BarChart3, title: "تتبع الحضور", desc: "تابع من حضر ومن لم يحضر لحظة بلحظة من لوحة التحكم." },
+    { icon: Smartphone, title: "إدارة من جوالك", desc: "تحكم كامل في فعاليتك من أي مكان عبر هاتفك." },
   ];
 
   return (
@@ -20,9 +14,7 @@ export default function FeatureSlider({ isWedding }: { isWedding: boolean }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((item, idx) => (
             <div key={idx} className="bg-white/[0.03] backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] hover:bg-white/[0.07] transition-all duration-500 group">
-              <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-all duration-500 ${
-                isWedding ? 'text-[#C19D65] shadow-[0_0_15px_rgba(193,157,101,0.2)]' : 'text-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-              } group-hover:scale-110`}>
+              <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-6 transition-all duration-500 text-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.2)] group-hover:scale-110">
                 <item.icon size={28} />
               </div>
               <h3 className="text-xl font-bold mb-3 text-white transition-colors duration-500">{item.title}</h3>

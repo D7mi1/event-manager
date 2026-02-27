@@ -2,18 +2,17 @@
 
 import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Loader2, Calendar, MapPin, AlertCircle,
-  Heart, Briefcase, User, Mail,
-  CheckCircle2
+  Briefcase, User, Mail,
 } from 'lucide-react';
 import { supabase } from '@/app/utils/supabase/client';
-import * as Sentry from '@sentry/nextjs'; // ✅ تتبع الأخطاء
+import * as Sentry from '@sentry/nextjs';
 
-// ✅ استيراد الأدوات الجديدة (الكاش والتحقق)
 import { useEventWithCache } from '@/app/hooks/useEventWithCache';
-import { registrationSchema } from '@/app/utils/schemas';
-import { validateData } from '@/app/utils/schemas';
+import { registrationSchema, type RegistrationFormData } from '@/lib/schemas';
 
 // بيانات دول الخليج
 const GULF_COUNTRIES = [
@@ -31,65 +30,37 @@ export default function RegistrationPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
 
-  // ✅ 1. استخدام SWR للكاش (سرعة تحميل فورية)
-  // بدلاً من useEffect و useState المعقدة
   const { event, loading, error } = useEventWithCache(id);
 
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Form Data
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [selectedCountry, setSelectedCountry] = useState(GULF_COUNTRIES[0]);
-  
-  // ✅ تخزين أخطاء التحقق القادمة من Zod
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Theme Logic
-  const isWedding = event?.type !== 'business';
-  const themeColor = isWedding ? '#C19D65' : '#3B82F6';
-  const themeBg = isWedding ? 'bg-[#C19D65]' : 'bg-blue-600';
+  // Theme Logic - Business only
+  const themeColor = '#3B82F6';
+  const themeBg = 'bg-blue-600';
 
-  // ✅ 2. دالة التحقق باستخدام Zod
-  const validateForm = () => {
-    // تجهيز البيانات للتحقق (دمج مفتاح الدولة مع الرقم)
-    const fullPhone = selectedCountry.code + formData.phone;
-    
-    // استخدام دالة validateData المساعدة التي بنيناها
-    const result = validateData(registrationSchema, {
-      name: formData.name,
-      email: formData.email,
-      phone: fullPhone
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<Omit<RegistrationFormData, 'eventId'>>({
+    resolver: zodResolver(registrationSchema.omit({ eventId: true })),
+    defaultValues: { name: '', email: '', phone: '' },
+    mode: 'onBlur',
+  });
 
-    if (!result.success && result.error) {
-      setValidationErrors({ form: result.error });
-      return false;
-    }
-
-    setValidationErrors({});
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // تنفيذ التحقق قبل الإرسال
-    if (!validateForm()) return;
-
-    setSubmitting(true);
+  const onSubmit = async (data: Omit<RegistrationFormData, 'eventId'>) => {
     setSubmitError(null);
 
     try {
-      const fullPhone = selectedCountry.code + formData.phone;
+      const fullPhone = selectedCountry.code + data.phone;
 
-      // إرسال البيانات
       const { data: guest, error: insertError } = await supabase
         .from('attendees')
         .insert([{
           event_id: id,
-          name: formData.name,
-          email: formData.email,
+          name: data.name,
+          email: data.email,
           phone: fullPhone,
           status: 'confirmed'
         }])
@@ -99,28 +70,25 @@ export default function RegistrationPage({ params }: PageProps) {
       if (insertError) throw insertError;
       if (!guest) throw new Error('فشل في إنشاء التذكرة');
 
-      // توجيه للتذكرة
       router.push(`/t/${guest.id}`);
 
     } catch (err) {
       console.error(err);
-      
-      // ✅ 3. تسجيل الخطأ في Sentry (للمراقبة)
+
       Sentry.captureException(err, {
-        extra: { eventId: id, formData },
+        extra: { eventId: id },
         tags: { section: 'registration' }
       });
 
       const errorMsg = err instanceof Error ? err.message : 'حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى';
       setSubmitError(errorMsg);
-      setSubmitting(false);
     }
   };
 
   // Loading State
-  if (loading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-[#C19D65]" /></div>;
-  
-  // Error State (SWR Error)
+  if (loading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" /></div>;
+
+  // Error State
   if (error || !event) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center text-white">الفعالية غير موجودة أو حدث خطأ في الاتصال</div>;
 
   return (
@@ -131,7 +99,7 @@ export default function RegistrationPage({ params }: PageProps) {
         {/* Header */}
         <div className="text-center mb-10">
           <div className={`w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white shadow-2xl ${themeBg}`}>
-            {isWedding ? <Heart size={36} fill="white" /> : <Briefcase size={36} />}
+            <Briefcase size={36} />
           </div>
           <h1 className="text-3xl font-black text-white mb-2">{event.name}</h1>
           <div className="flex justify-center gap-4 text-xs text-white/60 font-bold">
@@ -149,7 +117,7 @@ export default function RegistrationPage({ params }: PageProps) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-[#18181B]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[3rem] space-y-6 shadow-2xl">
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-[#18181B]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[3rem] space-y-6 shadow-2xl">
 
           {/* الاسم */}
           <div className="space-y-2">
@@ -158,22 +126,20 @@ export default function RegistrationPage({ params }: PageProps) {
               <User className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white transition-colors" size={18} />
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                // ✅ عرض الخطأ إن وجد في validationErrors
-                className={`w-full bg-black/40 border rounded-2xl py-4 pr-12 pl-12 text-white outline-none transition-all ${validationErrors.name ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[var(--theme)]'}`}
+                {...register('name')}
+                className={`w-full bg-black/40 border rounded-2xl py-4 pr-12 pl-12 text-white outline-none transition-all ${errors.name ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[var(--theme)]'}`}
                 placeholder="الاسم كما هو في البطاقة"
                 style={{ '--theme': themeColor } as any}
               />
             </div>
-            {validationErrors.name && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{validationErrors.name}</p>}
+            {errors.name && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{errors.name.message}</p>}
           </div>
 
           {/* الجوال */}
           <div className="space-y-2">
             <label className="text-xs text-white/40 mr-4 font-bold">رقم الجوال</label>
-            <div className={`flex flex-row-reverse bg-black/40 border rounded-2xl overflow-hidden transition-all ${validationErrors.phone ? 'border-red-500/50 focus-within:border-red-500' : 'border-white/10 focus-within:border-[var(--theme)]'}`} style={{ '--theme': themeColor } as any}>
-              
+            <div className={`flex flex-row-reverse bg-black/40 border rounded-2xl overflow-hidden transition-all ${errors.phone ? 'border-red-500/50 focus-within:border-red-500' : 'border-white/10 focus-within:border-[var(--theme)]'}`} style={{ '--theme': themeColor } as any}>
+
               {/* القائمة المنسدلة */}
               <div className="relative w-28 border-r border-white/10 shrink-0">
                 <select
@@ -191,13 +157,12 @@ export default function RegistrationPage({ params }: PageProps) {
               {/* حقل الإدخال */}
               <input
                 type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                {...register('phone')}
                 placeholder={selectedCountry.placeholder}
                 className="flex-1 bg-transparent py-4 px-4 text-white text-right outline-none font-mono tracking-widest placeholder:font-sans placeholder:tracking-normal placeholder:text-right dir-ltr"
               />
             </div>
-            {validationErrors.phone && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{validationErrors.phone}</p>}
+            {errors.phone && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{errors.phone.message}</p>}
           </div>
 
           {/* الإيميل */}
@@ -207,22 +172,21 @@ export default function RegistrationPage({ params }: PageProps) {
               <Mail className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white transition-colors" size={18} />
               <input
                 type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full bg-black/40 border rounded-2xl py-4 pr-12 pl-12 text-white outline-none transition-all text-left ${validationErrors.email ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[var(--theme)]'}`}
+                {...register('email')}
+                className={`w-full bg-black/40 border rounded-2xl py-4 pr-12 pl-12 text-white outline-none transition-all text-left ${errors.email ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[var(--theme)]'}`}
                 placeholder="name@example.com"
                 style={{ '--theme': themeColor } as any}
               />
             </div>
-            {validationErrors.email && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{validationErrors.email}</p>}
+            {errors.email && <p className="text-[10px] text-red-400 mr-4 mt-1 animate-in slide-in-from-top-1">{errors.email.message}</p>}
           </div>
 
           {/* زر الإرسال */}
-          <button type="submit" disabled={submitting} className="w-full py-5 rounded-2xl font-black text-lg text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: themeColor }}>
-            {submitting ? <Loader2 className="animate-spin" /> : 'تأكيد الحضور والحصول على التذكرة'}
+          <button type="submit" disabled={isSubmitting} className="w-full py-5 rounded-2xl font-black text-lg text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: themeColor }}>
+            {isSubmitting ? <Loader2 className="animate-spin" /> : 'تأكيد الحضور والحصول على التذكرة'}
           </button>
         </form>
-        
+
         <p className="text-center text-[10px] text-white/20 mt-8 tracking-widest uppercase">Powered by Meras Platform © 2025</p>
       </div>
     </div>

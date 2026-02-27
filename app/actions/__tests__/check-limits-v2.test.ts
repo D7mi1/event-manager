@@ -1,4 +1,4 @@
-import { checkGuestsLimit, incrementGuestsUsed } from '../check-limits-v2';
+import { checkGuestsLimit, incrementGuestsUsed } from '@/app/utils/check-limits-v2';
 
 // Mock Supabase
 jest.mock('@/app/utils/supabase/server', () => ({

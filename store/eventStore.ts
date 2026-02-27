@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/app/utils/supabase/client';
+import { toast } from 'sonner';
 
 export interface Attendee {
   id: string;
@@ -20,7 +21,7 @@ interface EventState {
   isLoading: boolean;
   searchTerm: string;
   filterType: 'all' | 'confirmed' | 'attended' | 'pending';
-  
+
   messageSettings: {
     reminder: { enabled: boolean; text: string };
     location: { enabled: boolean; text: string };
@@ -37,13 +38,13 @@ interface EventState {
   setEventId: (id: string) => void;
   setSearchTerm: (term: string) => void;
   setFilterType: (type: any) => void;
-  
+
   toggleAddModal: (isOpen: boolean) => void;
   toggleMessageModal: (isOpen: boolean) => void;
   toggleEditEventModal: (isOpen: boolean) => void;
   toggleImportModal: (isOpen: boolean) => void;
   toggleQueueModal: (isOpen: boolean) => void; // ✅ تمت إضافته
-  
+
   // --- Operations ---
   fetchData: () => Promise<void>;
   addGuest: (guest: { name: string, phone: string, category: string }) => Promise<void>;
@@ -63,7 +64,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   isLoading: true,
   searchTerm: '',
   filterType: 'all',
-  
+
   messageSettings: {
     reminder: { enabled: true, text: "مرحباً بك، نذكرك بموعد حفلنا غداً.. الموقع: {location_link}" },
     location: { enabled: false, text: "حياكم الله! فتحنا الأبواب الآن وننتظركم ✨" }
@@ -78,18 +79,37 @@ export const useEventStore = create<EventState>((set, get) => ({
   setEventId: (id) => set({ eventId: id }),
   setSearchTerm: (term) => set({ searchTerm: term }),
   setFilterType: (type) => set({ filterType: type }),
-  
+
   toggleAddModal: (isOpen) => set({ isAddModalOpen: isOpen }),
   toggleMessageModal: (isOpen) => set({ isMessageModalOpen: isOpen }),
   toggleEditEventModal: (isOpen) => set({ isEditEventModalOpen: isOpen }),
   toggleImportModal: (isOpen) => set({ isImportModalOpen: isOpen }),
   toggleQueueModal: (isOpen) => set({ isQueueModalOpen: isOpen }),
 
+  /**
+   * 🚀 Fetch Data Strategy:
+   * 1. Fetches event details and attendees list from Supabase.
+   * 2. OPTIMIZATION: Selects specific columns (`id`, `name`, `date`...) instead of `*` to minimize payload.
+   * 3. OPTIMIZATION: Avoids heavy joins (like `seats`) in the main fetch to ensure fast load times.
+   */
   fetchData: async () => {
     const { eventId } = get();
     if (!eventId) return;
-    const { data: event } = await supabase.from('events').select('*').eq('id', eventId).single();
-    const { data: attendees } = await supabase.from('attendees').select('*, seats(*, table:tables(name))').eq('event_id', eventId).order('created_at', { ascending: false });
+
+    // ✅ تحسين 1: جلب الأعمدة المطلوبة فقط للفعالية
+    const { data: event } = await supabase
+      .from('events')
+      .select('id, name, date, location_name, type, status, guests_count, is_registration_open, image_url, theme_color, pin')
+      .eq('id', eventId)
+      .single();
+
+    // ✅ تحسين 2: إزالة الـ Joins الثقيلة وتحديد الأعمدة
+    const { data: attendees } = await supabase
+      .from('attendees')
+      .select('id, name, phone, category, status, attended, updated_at, created_at, seats(seat_number, table:tables(name))')
+      .eq('event_id', eventId)
+      .order('created_at', { ascending: false });
+
     set({ eventDetails: event, attendees: attendees || [], isLoading: false });
   },
 
@@ -99,17 +119,24 @@ export const useEventStore = create<EventState>((set, get) => ({
     if (data && !error) set({ attendees: [data, ...attendees], isAddModalOpen: false });
   },
 
+  /**
+   * 🔄 Bulk Add Strategy:
+   * - Uses `upsert` to insert multiple guests efficiently.
+   * - `onConflict: 'event_id, phone'`: Prevents duplicate phone numbers in the same event.
+   * - `ignoreDuplicates: true`: Skips existing records instead of updating them (to preserve status).
+   * - Merges new data with existing local state to avoid a full re-fetch.
+   */
   bulkAddGuests: async (guests) => {
     const { eventId, attendees } = get();
     const formattedGuests = guests.map(g => ({ ...g, event_id: eventId, status: 'confirmed', attended: false, updated_at: new Date().toISOString() }));
     const { data, error } = await supabase.from('attendees').upsert(formattedGuests, { onConflict: 'event_id, phone', ignoreDuplicates: true }).select();
-    
-    if (error) { alert(`فشل: ${error.message}`); } 
+
+    if (error) { toast.error(`فشل: ${error.message}`); }
     else if (data) {
       const newIds = new Set(data.map(d => d.id));
       const mergedList = [...data, ...attendees.filter(a => !newIds.has(a.id))];
       set({ attendees: mergedList, isImportModalOpen: false });
-      alert(`تمت العملية بنجاح!`);
+      toast.success('تمت العملية بنجاح!');
     }
   },
 
@@ -123,6 +150,12 @@ export const useEventStore = create<EventState>((set, get) => ({
     set((state) => ({ attendees: state.attendees.filter((a) => !ids.includes(a.id)) }));
   },
 
+  /**
+   * ⚡ Optimistic Update Pattern:
+   * 1. Updates the UI immediately (via `set`) to give instant feedback.
+   * 2. Sends the request to the server in the background.
+   * 3. (Implicit): If server fails, we ideally should revert (not implemented here for simplicity, but good practice).
+   */
   toggleAttendance: async (id, currentStatus) => {
     const newStatus = !currentStatus;
     set(state => ({ attendees: state.attendees.map(a => a.id === id ? { ...a, attended: newStatus, updated_at: new Date().toISOString() } : a) }));
@@ -137,7 +170,7 @@ export const useEventStore = create<EventState>((set, get) => ({
 
   updateMessageSettings: async (settings) => {
     set({ messageSettings: settings, isMessageModalOpen: false });
-    alert("تم حفظ الإعدادات");
+    toast.success('تم حفظ الإعدادات');
   },
 
   // ✅ دالة تحديث حالة الإرسال

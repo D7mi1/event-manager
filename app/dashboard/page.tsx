@@ -8,8 +8,10 @@ import {
   ArrowUpRight, Sparkles, Briefcase
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import SubscriptionTracker from '@/app/components/SubscriptionTracker';
 import { Event, Attendee } from '@/types';
+import { PLANS, type PlanId } from '@/lib/billing/plans';
 
 // مكون التحميل الهيكلي
 const DashboardSkeleton = () => (
@@ -43,16 +45,29 @@ export default function Dashboard() {
 
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [currentPlanId, setCurrentPlanId] = useState<PlanId>('free');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push('/login');
+        return;
+      }
 
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (profile) {
         setUserName(profile.full_name);
         if (profile.interest === 'business') setThemeColor('#3B82F6');
+        // جلب الخطة الفعلية
+        if (profile.plan_id && profile.plan_id in PLANS) {
+          setCurrentPlanId(profile.plan_id as PlanId);
+        }
+        if (profile.subscription_status) {
+          setSubscriptionStatus(profile.subscription_status);
+        }
       }
 
       // جلب كل الفعاليات
@@ -116,11 +131,11 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link href="/dashboard/settings" className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
-              <Settings size={20} />
+            <Link href="/dashboard/settings" aria-label="الإعدادات" className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
+              <Settings size={20} aria-hidden="true" />
             </Link>
-            <button className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
-              <Bell size={20} />
+            <button aria-label="التنبيهات" className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
+              <Bell size={20} aria-hidden="true" />
               {notifications.length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
             </button>
             <Link href="/dashboard/events/new" style={{ backgroundColor: themeColor }} className="text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(193,157,101,0.3)]">
@@ -150,9 +165,22 @@ export default function Dashboard() {
           </div>
           <div className="bg-gradient-to-br from-[#0F0F12] to-[#1A1A1D] border border-white/5 p-6 rounded-[2rem] relative overflow-hidden group">
             <Crown className="text-[#C19D65] mb-4 group-hover:rotate-12 transition-transform" size={24} />
-            <p className="text-white/40 text-xs font-bold uppercase tracking-wider">حالة الباقة</p>
-            <h3 className="text-lg font-black mt-1 text-white">نشطة</h3>
-            <Link href="/dashboard/settings" className="text-[10px] text-[#C19D65] underline mt-1 block">إدارة الاشتراك</Link>
+            <p className="text-white/40 text-xs font-bold uppercase tracking-wider">الباقة الحالية</p>
+            <h3 className="text-lg font-black mt-1 text-[#C19D65]">{PLANS[currentPlanId].nameAr}</h3>
+            {subscriptionStatus && subscriptionStatus !== 'active' && (
+              <span className="text-[10px] text-amber-400 font-bold">
+                {subscriptionStatus === 'canceled' ? 'ملغاة' : subscriptionStatus === 'past_due' ? 'متأخرة' : subscriptionStatus}
+              </span>
+            )}
+            <div className="flex items-center gap-2 mt-2">
+              {currentPlanId === 'free' ? (
+                <Link href="/pricing" className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors font-bold">ترقية</Link>
+              ) : (
+                <Link href="/dashboard/settings?tab=billing" className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors font-bold">إدارة الاشتراك</Link>
+              )}
+              <span className="text-white/10">|</span>
+              <Link href="/dashboard/settings?tab=billing" className="text-[10px] text-white/30 hover:text-white/50 transition-colors font-bold">الفوترة</Link>
+            </div>
           </div>
         </div>
 
@@ -248,7 +276,7 @@ export default function Dashboard() {
 
             <h2 className="text-xl font-bold flex items-center gap-2"><Zap size={20} className="text-white/40" /> قوالب سريعة</h2>
             <div className="space-y-3">
-              <button onClick={() => window.location.href = '/dashboard/events/new'} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-[#C19D65]/50 hover:bg-[#C19D65]/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
+              <button onClick={() => router.push('/dashboard/events/new?template=wedding')} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-[#C19D65]/50 hover:bg-[#C19D65]/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
                 <div className="w-12 h-12 rounded-xl bg-[#C19D65]/10 flex items-center justify-center text-[#C19D65] group-hover:scale-110 transition-transform"><Sparkles size={20} /></div>
                 <div>
                   <h4 className="font-bold text-sm text-white group-hover:text-[#C19D65] transition-colors">حفل زفاف ملكي</h4>
@@ -256,7 +284,7 @@ export default function Dashboard() {
                 </div>
               </button>
 
-              <button onClick={() => window.location.href = '/dashboard/events/new'} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
+              <button onClick={() => router.push('/dashboard/events/new?template=conference')} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
                 <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform"><Briefcase size={20} /></div>
                 <div>
                   <h4 className="font-bold text-sm text-white group-hover:text-blue-500 transition-colors">مؤتمر تقني</h4>

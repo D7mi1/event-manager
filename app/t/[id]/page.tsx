@@ -1,14 +1,17 @@
 'use client';
 
-import { useRef, use, useState } from 'react';
+
+import { useRef, use, useState, useEffect } from 'react';
+
 import { useTicket } from '@/app/hooks/useTicket';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
-import { 
-  Loader2, Download, Calendar, MapPin, 
+import {
+  Loader2, Download, Calendar, MapPin,
   Share2, Map, CalendarPlus, Armchair,
   CheckCircle2, XCircle, Send, Heart, PenTool, AlertCircle
 } from 'lucide-react';
+import Link from 'next/link';
 import { Attendee } from '@/types';
 import { supabase } from '@/app/utils/supabase/client';
 import { APP_URL } from '@/app/config/constants';
@@ -27,13 +30,23 @@ export default function TicketPage({ params }: PageProps) {
   const [regretReason, setRegretReason] = useState('');
   const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
   const [memoryText, setMemoryText] = useState('');
-  
+
   // Error states
   const [actionError, setActionError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const ticketRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Flip Logic (State Moved to Top)
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  // Sync Flip State when ticket loads
+  useEffect(() => {
+    if (ticket?.status === 'confirmed') {
+      setIsFlipped(true);
+    }
+  }, [ticket]);
 
   // --- Handlers: RSVP ---
   const handleConfirm = async () => {
@@ -76,7 +89,7 @@ export default function TicketPage({ params }: PageProps) {
   // --- Handler: Memory Wall ---
   const handleSendMemory = async () => {
     setActionError(null);
-    
+
     // استخدام validateRequired للتحقق من الذكرى
     const validationError = validateRequired(memoryText, 'الذكرى');
     if (validationError) {
@@ -121,7 +134,7 @@ export default function TicketPage({ params }: PageProps) {
     try {
       setActionError(null);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      
+
       const dataUrl = await toPng(ticketRef.current, {
         cacheBust: true,
         backgroundColor: '#18181B',
@@ -133,7 +146,7 @@ export default function TicketPage({ params }: PageProps) {
       link.download = `ticket-${ticket?.name || 'meras'}.png`;
       link.href = dataUrl;
       link.click();
-      
+
       setSuccessMessage('تم حفظ التذكرة بنجاح');
       setTimeout(() => setSuccessMessage(null), 2000);
     } catch (err) {
@@ -148,7 +161,7 @@ export default function TicketPage({ params }: PageProps) {
       setActionError('الموقع غير متوفر');
       return;
     }
-    
+
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
       ticket.events.location_name
     )}`;
@@ -234,190 +247,206 @@ export default function TicketPage({ params }: PageProps) {
   const seatInfo = ticket.seats?.[0];
   const showSeatInfo = ticket.events && seatInfo;
 
+
+
+  const handleConfirmInvite = async () => {
+    await handleConfirm();
+    setTimeout(() => setIsFlipped(true), 1000); // Flip after 1s success message
+  };
+
   return (
     <div
       className="min-h-screen bg-[#0A0A0C] text-white flex flex-col items-center justify-center p-4 font-sans overflow-hidden"
       dir="rtl"
     >
-      {/* Alert Messages */}
+      {/* Alert Messages (Global) */}
       {actionError && (
-        <div className="w-full max-w-[380px] mb-4 bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-start gap-3">
+        <div className="w-full max-w-[380px] mb-4 bg-red-500/10 border border-red-500/30 rounded-xl p-3 flex items-start gap-3 z-50">
           <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
           <p className="text-sm text-red-400">{actionError}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className="w-full max-w-[380px] mb-4 bg-green-500/10 border border-green-500/30 rounded-xl p-3 flex items-start gap-3">
+        <div className="w-full max-w-[380px] mb-4 bg-green-500/10 border border-green-500/30 rounded-xl p-3 flex items-start gap-3 z-50">
           <CheckCircle2 className="text-green-500 flex-shrink-0 mt-0.5" size={18} />
           <p className="text-sm text-green-400">{successMessage}</p>
         </div>
       )}
-      <div 
-        ref={ticketRef} 
-        className="w-full max-w-[380px] bg-[#18181B] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative flex flex-col mb-6"
-      >
-        {/* Header */}
-        <div className={`h-40 relative flex items-center justify-center overflow-hidden ${theme.bgStyle}`}>
-           <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-white" style={{ backgroundImage: 'radial-gradient(circle, transparent 20%, #000 120%)' }}></div>
-           <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[60px]" style={{ backgroundColor: theme.color }}></div>
-           <div className="relative z-10 text-center px-4">
-              <h1 className="text-2xl font-black mb-1 drop-shadow-md">{ticket.events?.name}</h1>
-              <p className="text-[10px] opacity-70 tracking-widest uppercase">تذكرة دخول إلكترونية</p>
-           </div>
-        </div>
 
-        {/* Body */}
-        <div className="flex-1 bg-[#18181B] p-6 text-center relative">
-           <div className="absolute -left-4 top-0 w-8 h-8 bg-[#0A0A0C] rounded-full"></div>
-           <div className="absolute -right-4 top-0 w-8 h-8 bg-[#0A0A0C] rounded-full"></div>
-           <div className="absolute left-4 right-4 top-4 border-t-2 border-dashed border-white/10 opacity-50"></div>
+      {/* 🚀 THE 3D CARD CONTAINER */}
+      <div className="relative w-full max-w-[380px] h-[650px] perspective-1000 group">
+        <div className={`relative w-full h-full transition-all duration-1000 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
 
-           <div className="mt-6 space-y-2">
-              <h2 className="text-2xl font-bold text-white">{ticket.name}</h2>
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold border" style={{ borderColor: `${theme.color}40`, color: theme.color, backgroundColor: `${theme.color}10` }}>
-                {theme.badge}
-              </span>
-           </div>
-
-           {/* Seat Info */}
-           {showSeatInfo && (
-             <div className="mt-6 mx-auto bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between max-w-[200px]">
-                <div className="text-right">
-                   <p className="text-[9px] text-white/40">القاعة / القسم</p>
-                   <p className="text-sm font-bold text-white">{seatInfo.table?.name}</p>
-                </div>
-                <div className="h-6 w-px bg-white/10"></div>
-                <div className="text-left flex items-center gap-2">
-                   <div className="text-right">
-                      <p className="text-[9px] text-white/40">المقعد</p>
-                      <p className="text-lg font-black" style={{ color: theme.color }}>{seatInfo.seat_number}</p>
-                   </div>
-                   <Armchair size={16} className="text-white/20"/>
-                </div>
-             </div>
-           )}
-
-           {/* QR Code */}
-           <div className="my-6 flex justify-center">
-              <div className="bg-white p-4 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                 <QRCodeCanvas value={`https://meras.app/admin/scan/${id}`} size={150} bgColor={"#ffffff"} fgColor={"#000000"} level={"Q"} />
+          {/* 💌 FRONT FACE: INVITATION CARD */}
+          <div className="absolute w-full h-full backface-hidden rounded-[2.5rem] overflow-hidden bg-[#18181B] border border-white/10 shadow-2xl flex flex-col">
+            {/* Event Image */}
+            <div className="h-3/5 w-full bg-cover bg-center relative" style={{ backgroundImage: `url(${ticket.events?.image_url || 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop'})` }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#18181B] via-transparent to-transparent"></div>
+              <div className="absolute bottom-4 right-4 text-right">
+                <h2 className="text-2xl font-black text-white drop-shadow-lg leading-tight">{ticket.events?.name}</h2>
+                <p className="text-sm text-white/80 font-medium drops-shadow-md">{new Date(ticket.events?.date || '').toLocaleDateString('ar-SA')}</p>
               </div>
-           </div>
+            </div>
 
-           {/* Footer Info */}
-           <div className="grid grid-cols-2 gap-4 text-xs text-white/60 mb-4">
-              <div className="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-2">
-                 <Calendar size={16} style={{ color: theme.color }} />
-                 <span>{new Date(ticket.events?.date || '').toLocaleDateString('ar-SA')}</span>
-              </div>
-              <div className="bg-white/5 rounded-xl p-3 flex flex-col items-center gap-2">
-                 <MapPin size={16} style={{ color: theme.color }} />
-                 <span className="truncate w-full text-center">{ticket.events?.location_name || 'الموقع'}</span>
-              </div>
-           </div>
-           <p className="text-[10px] text-white/20 font-mono tracking-widest">SN: {ticket.id.slice(0, 8).toUpperCase()}</p>
-        </div>
-        <div className="h-2 w-full" style={{ backgroundColor: theme.color }}></div>
-      </div>
-
-      {/* ✅ --- RSVP Section (تأكيد الحضور) --- */}
-      <div className="w-full max-w-[380px] mb-4">
-        {ticket.status === 'pending' && (
-          <div className="bg-[#18181B] border border-[#C19D65] p-5 rounded-2xl text-center shadow-[0_0_30px_rgba(193,157,101,0.15)] animate-in slide-in-from-bottom-4">
-             <h3 className="text-lg font-bold text-white mb-1">هل ستشرفنا بالحضور؟ ✨</h3>
-             <p className="text-xs text-white/50 mb-4">تأكيدك يساعدنا في الترتيب</p>
-             <div className="flex gap-3">
-                <button onClick={handleConfirm} disabled={submitting} className="flex-1 bg-[#C19D65] text-black py-3 rounded-xl font-bold hover:brightness-110 flex items-center justify-center gap-2">
-                   {submitting ? <Loader2 className="animate-spin"/> : <CheckCircle2 size={18}/>} يشرفني الحضور
-                </button>
-                <button onClick={() => setIsRegretModalOpen(true)} disabled={submitting} className="flex-1 bg-white/5 text-white/60 py-3 rounded-xl font-bold hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2">
-                   <XCircle size={18}/> أعتذر
-                </button>
-             </div>
-          </div>
-        )}
-
-        {ticket.status === 'confirmed' && (
-           <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-2xl text-center flex items-center justify-center gap-3">
-              <div className="bg-green-500 text-black p-1 rounded-full"><CheckCircle2 size={20}/></div>
+            {/* Invitation Text & Actions */}
+            <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-6">
               <div>
-                 <p className="font-bold text-green-500">تم تأكيد حضورك</p>
-                 <p className="text-xs text-green-500/60">ننتظر بشوق مشاركتك لنا</p>
+                <p className="text-sm text-[#C19D65] font-bold mb-2">دعوة خاصة لـ</p>
+                <h1 className="text-3xl font-black text-white">{ticket.name}</h1>
               </div>
-           </div>
-        )}
 
-        {ticket.status === 'declined' && (
-           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
-              <p className="text-white/60">شكراً لك، سنفتقدك في الحفل 🤍</p>
-              <button onClick={() => handleConfirm()} className="text-xs text-[#C19D65] underline mt-2">تراجعت؟ اضغط هنا للتأكيد</button>
-           </div>
-        )}
-      </div>
+              <p className="text-white/60 text-sm leading-relaxed">
+                يسرنا دعوتكم لمشاركتنا هذه الليلة المميزة. حضوركم يضفي علينا البهجة والسرور.
+              </p>
 
-      {/* ✍️ --- Memory Wall Button (زر الذكريات) --- */}
-      <div className="w-full max-w-[380px] mb-8">
-         <button 
-           onClick={() => setIsMemoryModalOpen(true)}
-           className="w-full py-4 bg-[#18181B] border border-dashed border-[#C19D65]/40 text-[#C19D65] rounded-2xl flex items-center justify-center gap-2 hover:bg-[#C19D65]/5 transition-all shadow-sm"
-         >
-           <PenTool size={18} /> اكتب ذكرى أو تهنئة للعروسين
-         </button>
-      </div>
+              {/* RSVP Buttons (Front) */}
+              <div className="w-full space-y-3">
+                <button
+                  onClick={handleConfirmInvite}
+                  disabled={submitting}
+                  className="w-full bg-[#C19D65] text-black py-4 rounded-xl font-bold text-lg hover:brightness-110 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(193,157,101,0.2)] animate-pulse"
+                >
+                  {submitting ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={24} />} يشرفني الحضور (عرض التذكرة)
+                </button>
+                <button
+                  onClick={() => setIsRegretModalOpen(true)}
+                  disabled={submitting}
+                  className="w-full bg-white/5 text-white/60 py-3 rounded-xl font-bold hover:bg-white/10"
+                >
+                  أعتذر عن الحضور
+                </button>
+              </div>
 
-      {/* 🛠️ --- Action Buttons --- */}
-      <div className="flex flex-col gap-3 w-full max-w-[380px]">
-        <button onClick={handleDownload} style={{ backgroundColor: theme.color }} className="w-full py-4 rounded-2xl text-black font-black flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-[0.98] transition-all">
-          <Download size={20} /> حفظ التذكرة في الصور
-        </button>
+              {/* Hint */}
+              {ticket.status === 'confirmed' && (
+                <button onClick={() => setIsFlipped(true)} className="text-xs text-white/30 underline mt-2">
+                  عرض التذكرة (أنت مسجل بالفعل)
+                </button>
+              )}
+            </div>
+          </div>
 
-        <div className="flex gap-3">
-          <button onClick={theme.primaryBtnAction} className="flex-1 py-4 rounded-2xl bg-[#18181B] border border-white/10 text-white font-bold text-sm hover:bg-white/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <theme.primaryBtnIcon size={18} /> {theme.primaryBtnText}
-          </button>
-          <button onClick={shareTicket} className="px-6 py-4 rounded-2xl bg-[#18181B] border border-white/10 text-white hover:bg-white/5 transition-all">
-              <Share2 size={18} />
-          </button>
+          {/* 🎟️ BACK FACE: THE TICKET (المحتوى السابق) */}
+          <div className="absolute w-full h-full backface-hidden rotate-y-180 rounded-[2.5rem] bg-[#18181B] border border-white/10 shadow-2xl overflow-y-auto custom-scrollbar">
+            {/* ... Ticket Design Wrapper ... */}
+            <div ref={ticketRef} className="bg-[#18181B] relative flex flex-col min-h-full">
+              {/* Header */}
+              <div className={`h-32 relative flex items-center justify-center overflow-hidden shrink-0 ${theme.bgStyle}`}>
+                <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-white" style={{ backgroundImage: 'radial-gradient(circle, transparent 20%, #000 120%)' }}></div>
+                <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[60px]" style={{ backgroundColor: theme.color }}></div>
+                <div className="relative z-10 text-center px-4 pt-4">
+                  <h1 className="text-xl font-black mb-1 drop-shadow-md">{ticket.events?.name}</h1>
+                  <button onClick={() => setIsFlipped(false)} className="mx-auto mt-2 text-[10px] bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1 transition-colors">
+                    🔄 العودة للدعوة
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 px-6 py-4 text-center relative">
+                <div className="space-y-1 mb-4">
+                  <h2 className="text-2xl font-bold text-white">{ticket.name}</h2>
+                  <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold border" style={{ borderColor: `${theme.color}40`, color: theme.color, backgroundColor: `${theme.color}10` }}>
+                    {theme.badge}
+                  </span>
+                </div>
+
+                {/* Seat Info */}
+                {showSeatInfo && (
+                  <div className="mb-4 mx-auto bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between max-w-[200px]">
+                    <div className="text-right">
+                      <p className="text-[9px] text-white/40">القاعة / القسم</p>
+                      <p className="text-sm font-bold text-white">{seatInfo.table?.name}</p>
+                    </div>
+                    <div className="h-6 w-px bg-white/10"></div>
+                    <div className="text-left flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="text-[9px] text-white/40">المقعد</p>
+                        <p className="text-lg font-black" style={{ color: theme.color }}>{seatInfo.seat_number}</p>
+                      </div>
+                      <Armchair size={16} className="text-white/20" />
+                    </div>
+                  </div>
+                )}
+
+                {/* QR Code */}
+                <div className="my-4 flex justify-center">
+                  <div className="bg-white p-4 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                    <QRCodeCanvas value={`https://meras.app/admin/scan/${id}`} size={140} bgColor={"#ffffff"} fgColor={"#000000"} level={"Q"} />
+                  </div>
+                </div>
+
+                {/* Footer Info */}
+                <div className="grid grid-cols-2 gap-3 text-[10px] text-white/60 mb-6">
+                  <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center gap-1">
+                    <Calendar size={14} style={{ color: theme.color }} />
+                    <span>{new Date(ticket.events?.date || '').toLocaleDateString('ar-SA')}</span>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-2 flex flex-col items-center gap-1">
+                    <MapPin size={14} style={{ color: theme.color }} />
+                    <span className="truncate w-full text-center">{ticket.events?.location_name || 'الموقع'}</span>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="space-y-3 pb-8">
+                  <button onClick={handleDownload} style={{ backgroundColor: theme.color }} className="w-full py-3 rounded-2xl text-black font-black flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-[0.98] transition-all text-sm">
+                    <Download size={18} /> حفظ التذكرة
+                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={theme.primaryBtnAction} className="flex-1 py-3 rounded-2xl bg-[#18181B] border border-white/10 text-white font-bold text-xs hover:bg-white/5 transition-all flex items-center justify-center gap-2">
+                      <theme.primaryBtnIcon size={16} /> {theme.primaryBtnText}
+                    </button>
+                    <button onClick={shareTicket} className="px-5 py-3 rounded-2xl bg-[#18181B] border border-white/10 text-white hover:bg-white/5 transition-all">
+                      <Share2 size={16} />
+                    </button>
+                  </div>
+                  <button onClick={() => setIsMemoryModalOpen(true)} className="w-full py-3 bg-[#18181B] border border-dashed border-[#C19D65]/40 text-[#C19D65] rounded-2xl flex items-center justify-center gap-2 hover:bg-[#C19D65]/5 transition-all text-sm mt-4">
+                    <PenTool size={16} /> كتابة ذكرى للعروسين
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* 🌑 --- Modals --- */}
-      
-      {/* 1. Regret Modal (نافذة الاعتذار) */}
+      {/* 🌑 --- Modals (Regret & Memory) --- */}
+      {/* Kept Same as Before... */}
       {isRegretModalOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-[#18181B] w-full max-w-sm rounded-3xl border border-white/10 p-6 animate-in zoom-in">
-              <h3 className="text-xl font-bold mb-2">نأسف لعدم حضورك 😔</h3>
-              <p className="text-xs text-white/50 mb-4">اختياري: هل تود إخبارنا بالسبب؟</p>
-              <textarea rows={3} placeholder="سبب الاعتذار..." value={regretReason} onChange={(e) => setRegretReason(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white mb-4 focus:border-[#C19D65] outline-none" />
-              <div className="flex gap-2">
-                 <button onClick={handleDecline} disabled={submitting} className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200">
-                    {submitting ? 'جاري الإرسال...' : 'تأكيد الاعتذار'}
-                 </button>
-                 <button onClick={() => setIsRegretModalOpen(false)} className="px-5 bg-white/5 rounded-xl font-bold text-white">إلغاء</button>
-              </div>
-           </div>
+          <div className="bg-[#18181B] w-full max-w-sm rounded-3xl border border-white/10 p-6 animate-in zoom-in">
+            <h3 className="text-xl font-bold mb-2">نأسف لعدم حضورك 😔</h3>
+            <p className="text-xs text-white/50 mb-4">اختياري: هل تود إخبارنا بالسبب؟</p>
+            <textarea rows={3} placeholder="سبب الاعتذار..." value={regretReason} onChange={(e) => setRegretReason(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white mb-4 focus:border-[#C19D65] outline-none" />
+            <div className="flex gap-2">
+              <button onClick={handleDecline} disabled={submitting} className="flex-1 bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200">
+                {submitting ? 'جاري الإرسال...' : 'تأكيد الاعتذار'}
+              </button>
+              <button onClick={() => setIsRegretModalOpen(false)} className="px-5 bg-white/5 rounded-xl font-bold text-white">إلغاء</button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 2. Memory Modal (نافذة الذكريات) */}
       {isMemoryModalOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-[#18181B] w-full max-w-sm rounded-3xl border border-white/10 p-6 animate-in zoom-in relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#C19D65]/10 rounded-full blur-[50px] pointer-events-none"></div>
-              <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-white">
-                <Heart className="text-red-500 fill-red-500" size={20}/> جدار الذكريات
-              </h3>
-              <p className="text-xs text-white/50 mb-4">اكتب تهنئة أو ذكرى لطيفة ستبقى مخلدة ✨</p>
-              <textarea rows={4} placeholder="أكتب رسالتك هنا..." value={memoryText} onChange={(e) => setMemoryText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white mb-4 focus:border-[#C19D65] outline-none resize-none" />
-              <div className="flex gap-2">
-                 <button onClick={handleSendMemory} disabled={submitting} className="flex-1 bg-[#C19D65] text-black font-bold py-3 rounded-xl hover:brightness-110">
-                    {submitting ? 'جاري الإرسال...' : 'نشر الذكرى'}
-                 </button>
-                 <button onClick={() => setIsMemoryModalOpen(false)} className="px-5 bg-white/5 rounded-xl font-bold text-white">إلغاء</button>
-              </div>
-           </div>
+          <div className="bg-[#18181B] w-full max-w-sm rounded-3xl border border-white/10 p-6 animate-in zoom-in relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#C19D65]/10 rounded-full blur-[50px] pointer-events-none"></div>
+            <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-white">
+              <Heart className="text-red-500 fill-red-500" size={20} /> جدار الذكريات
+            </h3>
+            <p className="text-xs text-white/50 mb-4">اكتب تهنئة أو ذكرى لطيفة ستبقى مخلدة ✨</p>
+            <textarea rows={4} placeholder="أكتب رسالتك هنا..." value={memoryText} onChange={(e) => setMemoryText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white mb-4 focus:border-[#C19D65] outline-none resize-none" />
+            <div className="flex gap-2">
+              <button onClick={handleSendMemory} disabled={submitting} className="flex-1 bg-[#C19D65] text-black font-bold py-3 rounded-xl hover:brightness-110">
+                {submitting ? 'جاري الإرسال...' : 'نشر الذكرى'}
+              </button>
+              <button onClick={() => setIsMemoryModalOpen(false)} className="px-5 bg-white/5 rounded-xl font-bold text-white">إلغاء</button>
+            </div>
+          </div>
         </div>
       )}
 

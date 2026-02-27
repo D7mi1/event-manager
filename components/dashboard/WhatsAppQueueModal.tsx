@@ -24,8 +24,7 @@ export function WhatsAppQueueModal() {
       setQueue(pendingGuests);
       setCurrentIndex(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isQueueModalOpen]); // 👈 أزلنا 'attendees' من هنا لمنع الـ Reset
+  }, [isQueueModalOpen]);
 
   if (!isQueueModalOpen) return null;
 

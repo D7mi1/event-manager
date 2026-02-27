@@ -5,6 +5,7 @@ import { supabase } from '@/app/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Calendar, MapPin, Type, Loader2, FileText, Link as LinkIcon, Clock, Save, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -48,7 +49,7 @@ export default function EditEvent({ params }: PageProps) {
       .eq('id', eventId)
 
     if (error) {
-      alert('حدث خطأ أثناء التحديث')
+      toast.error('حدث خطأ أثناء التحديث')
       setSaving(false)
     } else {
       router.push('/dashboard')

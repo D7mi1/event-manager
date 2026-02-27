@@ -1,46 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/app/utils/supabase/client';
 import { Settings, Lock, Loader2 } from 'lucide-react';
-import { useSWRConfig } from 'swr'; // ✅ استيراد صحيح
-import * as Sentry from '@sentry/nextjs'; 
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queries/query-keys';
+import { toast } from 'sonner';
+import * as Sentry from '@sentry/nextjs';
+import { PinUpdateFormSchema, type PinUpdateFormInput } from '@/lib/schemas';
 
 export default function PinSettings({ eventId, currentPin }: { eventId: string, currentPin: string }) {
-  // ✅ استدعاء الـ Hook داخل جسم المكون
-  const { mutate } = useSWRConfig();
-
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [newPin, setNewPin] = useState(currentPin);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleUpdatePin = async () => {
-    if (newPin.length !== 4) {
-      setError("يجب أن يتكون الرمز من 4 أرقام");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<PinUpdateFormInput>({
+    resolver: zodResolver(PinUpdateFormSchema),
+    defaultValues: { newPin: currentPin },
+  });
 
-    setLoading(true);
-    setError(null);
-
+  const onSubmit = async (data: PinUpdateFormInput) => {
     try {
       const { error: updateError } = await supabase
         .from('events')
-        .update({ pin: newPin })
+        .update({ pin: data.newPin })
         .eq('id', eventId);
 
       if (updateError) throw updateError;
-      
-      // ✅ تحديث الكاش فوراً لضمان مزامنة البيانات
-      mutate(`event-${eventId}`); 
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(eventId) });
       setIsEditing(false);
-      alert('تم تحديث رمز الدخول بنجاح! ✅');
+      toast.success('تم تحديث رمز الدخول بنجاح');
     } catch (err) {
       Sentry.captureException(err);
-      setError('فشل التحديث، يرجى المحاولة لاحقاً');
-    } finally {
-      setLoading(false);
+      toast.error('فشل التحديث، يرجى المحاولة لاحقاً');
     }
   };
 
@@ -58,9 +57,9 @@ export default function PinSettings({ eventId, currentPin }: { eventId: string, 
             </p>
           </div>
         </div>
-        
-        <button 
-          onClick={() => setIsEditing(!isEditing)}
+
+        <button
+          onClick={() => { setIsEditing(!isEditing); reset({ newPin: currentPin }); }}
           className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"
         >
           <Settings size={18} className="text-white/60" />
@@ -68,38 +67,43 @@ export default function PinSettings({ eventId, currentPin }: { eventId: string, 
       </div>
 
       {isEditing && (
-        <div className="mt-6 pt-6 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 pt-6 border-t border-white/5 space-y-4 animate-in slide-in-from-top-2 duration-300">
           <div className="space-y-2">
             <label className="text-[10px] text-white/30 mr-2">أدخل الرمز الجديد</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               inputMode="numeric"
               maxLength={4}
-              value={newPin}
-              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+              {...register('newPin')}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/\D/g, '');
+                e.target.value = cleaned;
+                register('newPin').onChange(e);
+              }}
               className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 text-center text-2xl font-mono font-bold text-[#C19D65] focus:border-[#C19D65] outline-none transition-all"
               placeholder="0000"
             />
           </div>
-          
-          {error && <p className="text-[10px] text-red-400 text-center font-bold">{error}</p>}
-          
+
+          {errors.newPin && <p className="text-[10px] text-red-400 text-center font-bold">{errors.newPin.message}</p>}
+
           <div className="flex gap-2">
-             <button 
-                onClick={handleUpdatePin}
-                disabled={loading || newPin.length < 4}
+             <button
+                type="submit"
+                disabled={isSubmitting}
                 className="flex-1 py-3 bg-[#C19D65] text-black rounded-xl font-black text-sm hover:brightness-110 disabled:opacity-50 transition-all shadow-lg shadow-[#C19D65]/10"
               >
-                {loading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'حفظ التغيير'}
+                {isSubmitting ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'حفظ التغيير'}
               </button>
-              <button 
-                onClick={() => {setIsEditing(false); setError(null);}}
+              <button
+                type="button"
+                onClick={() => { setIsEditing(false); }}
                 className="px-4 py-3 bg-white/5 text-white/60 rounded-xl text-sm font-bold hover:bg-white/10"
               >
                 إلغاء
               </button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   );

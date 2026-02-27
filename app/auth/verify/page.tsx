@@ -5,6 +5,7 @@ import { supabase } from '@/app/utils/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Loader2, ArrowLeft, ShieldCheck, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 function VerifyContent() {
   const router = useRouter();
@@ -114,7 +115,7 @@ function VerifyContent() {
       });
       if (error) throw error;
       setTimer(60); // إعادة العداد
-      alert('تم إرسال الرمز مجدداً');
+      toast.success('تم إرسال الرمز مجددا');
     } catch (err: any) {
       setError(err.message);
     } finally {

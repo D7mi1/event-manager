@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { supabase } from '@/app/utils/supabase/client';
 import { Settings, Lock, Copy, Check, Loader2 } from 'lucide-react';
-import { useSWRConfig } from 'swr';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queries/query-keys';
+import { toast } from 'sonner';
 import * as Sentry from '@sentry/nextjs';
 
 export default function ScannerAccessCard({ eventId, currentPin }: { eventId: string, currentPin: string }) {
-  const { mutate } = useSWRConfig();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [newPin, setNewPin] = useState(currentPin);
   const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ export default function ScannerAccessCard({ eventId, currentPin }: { eventId: st
     // التحقق من المدخلات
     if (newPin.length !== 4) return;
     if (!eventId) {
-      alert("خطأ: رقم الحفل غير موجود");
+      toast.error('خطأ: رقم الحفل غير موجود');
       return;
     }
 
@@ -40,9 +42,9 @@ export default function ScannerAccessCard({ eventId, currentPin }: { eventId: st
       if (error) throw error;
 
       // تحديث البيانات وعرض رسالة النجاح
-      mutate(`event-${eventId}`);
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.detail(eventId) });
       setIsEditing(false);
-      alert('تم تحديث الرمز بنجاح ✅');
+      toast.success('تم تحديث الرمز بنجاح');
 
     } catch (err: any) {
       // تسجيل الخطأ في Sentry للمراقبة الخلفية
@@ -50,7 +52,7 @@ export default function ScannerAccessCard({ eventId, currentPin }: { eventId: st
       
       // عرض رسالة خطأ واضحة للمستخدم
       const msg = err.message || 'حدث خطأ غير متوقع';
-      alert(`فشل التحديث: ${msg}`);
+      toast.error(`فشل التحديث: ${msg}`);
     } finally {
       setLoading(false);
     }

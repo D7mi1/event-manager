@@ -1,17 +1,50 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/app/utils/supabase/server'
 import { templateSchema } from '@/app/utils/templateSchema'
+import { auditLogger } from '@/lib/audit-logger'
+import { metricsCollector } from '@/lib/metrics'
+import { getCorsHeaders, isOriginAllowed } from '@/lib/cors'
 
-export async function GET(request: Request) {
+// Helper to get client IP
+function getClientIP(request: Request | NextRequest): string {
+  const headersList = request.headers;
+  return (headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || '0.0.0.0').split(',')[0].trim();
+}
+
+// Helper to get user agent
+function getUserAgent(request: Request | NextRequest): string {
+  return request.headers.get('user-agent') || 'Unknown';
+}
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  const ip = getClientIP(request);
+  const userAgent = getUserAgent(request);
+  const origin = request.headers.get('origin');
+
   try {
+    // ✅ CORS Check
+    if (origin && !isOriginAllowed(origin)) {
+      await auditLogger.logSuspicious('get_templates', {
+        ipAddress: ip,
+        userAgent,
+        reason: 'CORS origin not allowed',
+      });
+      return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url)
     const eventId = searchParams.get('eventId')
     const templateType = searchParams.get('templateType')
 
     if (!eventId) {
+      await auditLogger.logFailure('get_templates', 'Missing eventId parameter', {
+        ipAddress: ip,
+        userAgent,
+      });
       return NextResponse.json(
         { error: 'eventId مطلوب' },
-        { status: 400 }
+        { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -25,9 +58,14 @@ export async function GET(request: Request) {
       .single()
 
     if (eventError || !event) {
+      await auditLogger.logFailure('get_templates', 'Event not found', {
+        ipAddress: ip,
+        userAgent,
+        eventId,
+      });
       return NextResponse.json(
         { error: 'الفعالية غير موجودة' },
-        { status: 404 }
+        { status: 404, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -47,25 +85,71 @@ export async function GET(request: Request) {
       throw templatesError
     }
 
-    return NextResponse.json({ templates })
+    // 📝 Log success
+    await auditLogger.logSuccess('get_templates', {
+      ipAddress: ip,
+      userAgent,
+      eventId,
+      details: { templateCount: templates?.length || 0 },
+    });
+
+    // 📊 Track metrics
+    metricsCollector.incrementCounter('api_templates_retrieved', templates?.length || 0, { eventId });
+
+    // 📊 Track request duration
+    const duration = Date.now() - startTime;
+    metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'GET' });
+
+    return NextResponse.json(
+      { templates },
+      { headers: getCorsHeaders(origin) }
+    )
   } catch (error: any) {
+    // 📝 Log error
+    await auditLogger.logFailure('get_templates', error.message || 'Unknown error', {
+      ipAddress: ip,
+      userAgent,
+    });
+
+    // 📊 Track error
+    metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'GET' });
+
     console.error('Template GET error:', error)
     return NextResponse.json(
       { error: error.message || 'خطأ في جلب التصاميم' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(origin) }
     )
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  const ip = getClientIP(request);
+  const userAgent = getUserAgent(request);
+  const origin = request.headers.get('origin');
+
   try {
+    // ✅ CORS Check
+    if (origin && !isOriginAllowed(origin)) {
+      await auditLogger.logSuspicious('create_template', {
+        ipAddress: ip,
+        userAgent,
+        reason: 'CORS origin not allowed',
+      });
+      return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
     const body = await request.json()
     const { eventId, templateName, templateType, elements, backgroundColor } = body
 
     if (!eventId || !templateName || !templateType) {
+      await auditLogger.logFailure('create_template', 'Missing required fields: eventId, templateName, or templateType', {
+        ipAddress: ip,
+        userAgent,
+      });
       return NextResponse.json(
         { error: 'المعلومات المطلوبة ناقصة' },
-        { status: 400 }
+        { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -79,9 +163,14 @@ export async function POST(request: Request) {
       .single()
 
     if (eventError || !event) {
+      await auditLogger.logFailure('create_template', 'Event not found', {
+        ipAddress: ip,
+        userAgent,
+        eventId,
+      });
       return NextResponse.json(
         { error: 'الفعالية غير موجودة' },
-        { status: 404 }
+        { status: 404, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -93,7 +182,7 @@ export async function POST(request: Request) {
           event_id: eventId,
           template_name: templateName,
           template_type: templateType,
-          template_category: 'wedding', // Default
+          template_category: 'corporate', // Default for business events
           elements: elements || [],
           background_color: backgroundColor || '#ffffff',
         },
@@ -105,28 +194,71 @@ export async function POST(request: Request) {
       throw insertError
     }
 
+    // 📝 Log success
+    await auditLogger.logSuccess('create_template', {
+      ipAddress: ip,
+      userAgent,
+      eventId,
+      details: { templateId: template?.id, templateName },
+    });
+
+    // 📊 Track metrics
+    metricsCollector.incrementCounter('api_templates_created', 1, { eventId });
+
+    // 📊 Track request duration
+    const duration = Date.now() - startTime;
+    metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'POST' });
+
     return NextResponse.json(
       { template, message: 'تم حفظ التصميم بنجاح' },
-      { status: 201 }
+      { status: 201, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
+    // 📝 Log error
+    await auditLogger.logFailure('create_template', error.message || 'Unknown error', {
+      ipAddress: ip,
+      userAgent,
+    });
+
+    // 📊 Track error
+    metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'POST' });
+
     console.error('Template POST error:', error)
     return NextResponse.json(
       { error: error.message || 'خطأ في حفظ التصميم' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(origin) }
     )
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  const startTime = Date.now();
+  const ip = getClientIP(request);
+  const userAgent = getUserAgent(request);
+  const origin = request.headers.get('origin');
+
   try {
+    // ✅ CORS Check
+    if (origin && !isOriginAllowed(origin)) {
+      await auditLogger.logSuspicious('update_template', {
+        ipAddress: ip,
+        userAgent,
+        reason: 'CORS origin not allowed',
+      });
+      return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
     const body = await request.json()
     const { templateId, templateName, elements, backgroundColor } = body
 
     if (!templateId) {
+      await auditLogger.logFailure('update_template', 'Missing templateId', {
+        ipAddress: ip,
+        userAgent,
+      });
       return NextResponse.json(
         { error: 'templateId مطلوب' },
-        { status: 400 }
+        { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -148,28 +280,70 @@ export async function PUT(request: Request) {
       throw updateError
     }
 
+    // 📝 Log success
+    await auditLogger.logSuccess('update_template', {
+      ipAddress: ip,
+      userAgent,
+      details: { templateId, templateName },
+    });
+
+    // 📊 Track metrics
+    metricsCollector.incrementCounter('api_templates_updated', 1, {});
+
+    // 📊 Track request duration
+    const duration = Date.now() - startTime;
+    metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'PUT' });
+
     return NextResponse.json(
       { template, message: 'تم تحديث التصميم بنجاح' },
-      { status: 200 }
+      { status: 200, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
+    // 📝 Log error
+    await auditLogger.logFailure('update_template', error.message || 'Unknown error', {
+      ipAddress: ip,
+      userAgent,
+    });
+
+    // 📊 Track error
+    metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'PUT' });
+
     console.error('Template PUT error:', error)
     return NextResponse.json(
       { error: error.message || 'خطأ في تحديث التصميم' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(origin) }
     )
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+  const startTime = Date.now();
+  const ip = getClientIP(request);
+  const userAgent = getUserAgent(request);
+  const origin = request.headers.get('origin');
+
   try {
+    // ✅ CORS Check
+    if (origin && !isOriginAllowed(origin)) {
+      await auditLogger.logSuspicious('delete_template', {
+        ipAddress: ip,
+        userAgent,
+        reason: 'CORS origin not allowed',
+      });
+      return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url)
     const templateId = searchParams.get('templateId')
 
     if (!templateId) {
+      await auditLogger.logFailure('delete_template', 'Missing templateId', {
+        ipAddress: ip,
+        userAgent,
+      });
       return NextResponse.json(
         { error: 'templateId مطلوب' },
-        { status: 400 }
+        { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
@@ -184,15 +358,52 @@ export async function DELETE(request: Request) {
       throw deleteError
     }
 
+    // 📝 Log success
+    await auditLogger.logSuccess('delete_template', {
+      ipAddress: ip,
+      userAgent,
+      details: { templateId },
+    });
+
+    // 📊 Track metrics
+    metricsCollector.incrementCounter('api_templates_deleted', 1, {});
+
+    // 📊 Track request duration
+    const duration = Date.now() - startTime;
+    metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'DELETE' });
+
     return NextResponse.json(
       { message: 'تم حذف التصميم بنجاح' },
-      { status: 200 }
+      { status: 200, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
+    // 📝 Log error
+    await auditLogger.logFailure('delete_template', error.message || 'Unknown error', {
+      ipAddress: ip,
+      userAgent,
+    });
+
+    // 📊 Track error
+    metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'DELETE' });
+
     console.error('Template DELETE error:', error)
     return NextResponse.json(
       { error: error.message || 'خطأ في حذف التصميم' },
-      { status: 500 }
+      { status: 500, headers: getCorsHeaders(origin) }
     )
   }
+}
+
+// ✅ Handle CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
+  if (!origin || !isOriginAllowed(origin)) {
+    return new NextResponse(null, { status: 403 });
+  }
+
+  return new NextResponse(null, {
+    status: 200,
+    headers: getCorsHeaders(origin),
+  });
 }
