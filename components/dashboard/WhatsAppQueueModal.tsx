@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useEventStore } from '@/store/eventStore';
-import { generateWhatsAppLink } from '@/app/utils/whatsappHelper';
+import { useEventStore } from '@/lib/stores/eventStore';
+import { generateWhatsAppLink } from '@/lib/services/whatsapp';
 import { X, Send, SkipForward, CheckCircle2 } from 'lucide-react';
 
 export function WhatsAppQueueModal() {

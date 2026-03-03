@@ -156,7 +156,7 @@ const error = validateRequired('value', 'Field Name');
 التحقق من نموذج التسجيل:
 
 ```typescript
-import { registrationSchema, validateData } from '@/app/utils/schemas';
+import { registrationSchema, validateData } from '@/lib/schemas';
 
 const result = validateData(registrationSchema, {
   name: 'أحمد محمد',
@@ -178,7 +178,7 @@ if (result.success) {
 التحقق من البيانات المدخلة للذكريات:
 
 ```typescript
-import { memorySchema } from '@/app/utils/schemas';
+import { memorySchema } from '@/lib/schemas';
 
 const result = memorySchema.safeParse({
   message: 'ذكرى جميلة',
@@ -196,7 +196,7 @@ const result = memorySchema.safeParse({
 تتبع الأخطاء تلقائياً:
 
 ```typescript
-import { captureError, setSentryUser } from '@/app/utils/sentry';
+import { captureError, setSentryUser } from '@/lib/sentry';
 
 // تعيين المستخدم
 setSentryUser(userId, userEmail);
@@ -248,8 +248,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### التسجيل في فعالية
 
 ```typescript
-import { registrationSchema, validateData } from '@/app/utils/schemas';
-import { supabase } from '@/app/utils/supabase/client';
+import { registrationSchema, validateData } from '@/lib/schemas';
+import { supabase } from '@/lib/supabase/client';
 
 async function registerForEvent(formData) {
   // التحقق من البيانات
@@ -273,7 +273,7 @@ async function registerForEvent(formData) {
 ### تأكيد الحضور
 
 ```typescript
-import { useTicket } from '@/app/hooks/useTicket';
+import { useTicket } from '@/lib/hooks/useTicket';
 
 export function ConfirmAttendance({ ticketId }) {
   const { ticket, updateTicketStatus } = useTicket(ticketId);

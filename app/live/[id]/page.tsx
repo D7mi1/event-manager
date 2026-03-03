@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import {
    Users, CheckCircle2, QrCode, Clock, Loader2,
    Activity, MapPin, Calendar

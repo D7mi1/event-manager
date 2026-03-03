@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/app/utils/supabase/server'
-import { templateSchema } from '@/app/utils/templateSchema'
+import { createClient } from '@/lib/supabase/server'
+import { templateSchema } from '@/lib/schemas/template'
 import { auditLogger } from '@/lib/audit-logger'
 import { metricsCollector } from '@/lib/metrics'
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors'
@@ -33,6 +33,14 @@ export async function GET(request: NextRequest) {
       return new NextResponse('CORS not allowed', { status: 403 });
     }
 
+    const supabase = await createClient()
+
+    // ✅ Auth check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) });
+    }
+
     const { searchParams } = new URL(request.url)
     const eventId = searchParams.get('eventId')
     const templateType = searchParams.get('templateType')
@@ -48,17 +56,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
-
-    // التحقق من ملكية الفعالية
+    // ✅ التحقق من ملكية الفعالية
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, owner_id')
+      .select('id, user_id')
       .eq('id', eventId)
+      .eq('user_id', user.id)
       .single()
 
     if (eventError || !event) {
-      await auditLogger.logFailure('get_templates', 'Event not found', {
+      await auditLogger.logFailure('get_templates', 'Event not found or not owned', {
         ipAddress: ip,
         userAgent,
         eventId,
@@ -105,18 +112,14 @@ export async function GET(request: NextRequest) {
       { headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
-    // 📝 Log error
     await auditLogger.logFailure('get_templates', error.message || 'Unknown error', {
       ipAddress: ip,
       userAgent,
     });
-
-    // 📊 Track error
     metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'GET' });
-
     console.error('Template GET error:', error)
     return NextResponse.json(
-      { error: error.message || 'خطأ في جلب التصاميم' },
+      { error: 'خطأ في جلب التصاميم' },
       { status: 500, headers: getCorsHeaders(origin) }
     )
   }
@@ -129,83 +132,61 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
 
   try {
-    // ✅ CORS Check
     if (origin && !isOriginAllowed(origin)) {
-      await auditLogger.logSuspicious('create_template', {
-        ipAddress: ip,
-        userAgent,
-        reason: 'CORS origin not allowed',
-      });
+      await auditLogger.logSuspicious('create_template', { ipAddress: ip, userAgent, reason: 'CORS origin not allowed' });
       return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
+    const supabase = await createClient()
+
+    // ✅ Auth check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) });
     }
 
     const body = await request.json()
     const { eventId, templateName, templateType, elements, backgroundColor } = body
 
     if (!eventId || !templateName || !templateType) {
-      await auditLogger.logFailure('create_template', 'Missing required fields: eventId, templateName, or templateType', {
-        ipAddress: ip,
-        userAgent,
-      });
       return NextResponse.json(
         { error: 'المعلومات المطلوبة ناقصة' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
-    const supabase = await createClient()
-
-    // التحقق من ملكية الفعالية
+    // ✅ التحقق من ملكية الفعالية
     const { data: event, error: eventError } = await supabase
       .from('events')
-      .select('id, owner_id')
+      .select('id, user_id')
       .eq('id', eventId)
+      .eq('user_id', user.id)
       .single()
 
     if (eventError || !event) {
-      await auditLogger.logFailure('create_template', 'Event not found', {
-        ipAddress: ip,
-        userAgent,
-        eventId,
-      });
       return NextResponse.json(
-        { error: 'الفعالية غير موجودة' },
-        { status: 404, headers: getCorsHeaders(origin) }
+        { error: 'الفعالية غير موجودة أو لا تملك صلاحية' },
+        { status: 403, headers: getCorsHeaders(origin) }
       )
     }
 
-    // حفظ التصميم
     const { data: template, error: insertError } = await supabase
       .from('event_templates')
-      .insert([
-        {
-          event_id: eventId,
-          template_name: templateName,
-          template_type: templateType,
-          template_category: 'corporate', // Default for business events
-          elements: elements || [],
-          background_color: backgroundColor || '#ffffff',
-        },
-      ])
+      .insert([{
+        event_id: eventId,
+        template_name: templateName,
+        template_type: templateType,
+        template_category: 'corporate',
+        elements: elements || [],
+        background_color: backgroundColor || '#ffffff',
+      }])
       .select()
       .single()
 
-    if (insertError) {
-      throw insertError
-    }
+    if (insertError) throw insertError
 
-    // 📝 Log success
-    await auditLogger.logSuccess('create_template', {
-      ipAddress: ip,
-      userAgent,
-      eventId,
-      details: { templateId: template?.id, templateName },
-    });
-
-    // 📊 Track metrics
+    await auditLogger.logSuccess('create_template', { ipAddress: ip, userAgent, eventId, details: { templateId: template?.id, templateName } });
     metricsCollector.incrementCounter('api_templates_created', 1, { eventId });
-
-    // 📊 Track request duration
     const duration = Date.now() - startTime;
     metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'POST' });
 
@@ -214,18 +195,11 @@ export async function POST(request: NextRequest) {
       { status: 201, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
-    // 📝 Log error
-    await auditLogger.logFailure('create_template', error.message || 'Unknown error', {
-      ipAddress: ip,
-      userAgent,
-    });
-
-    // 📊 Track error
+    await auditLogger.logFailure('create_template', error.message || 'Unknown error', { ipAddress: ip, userAgent });
     metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'POST' });
-
     console.error('Template POST error:', error)
     return NextResponse.json(
-      { error: error.message || 'خطأ في حفظ التصميم' },
+      { error: 'خطأ في حفظ التصميم' },
       { status: 500, headers: getCorsHeaders(origin) }
     )
   }
@@ -238,31 +212,39 @@ export async function PUT(request: NextRequest) {
   const origin = request.headers.get('origin');
 
   try {
-    // ✅ CORS Check
     if (origin && !isOriginAllowed(origin)) {
-      await auditLogger.logSuspicious('update_template', {
-        ipAddress: ip,
-        userAgent,
-        reason: 'CORS origin not allowed',
-      });
+      await auditLogger.logSuspicious('update_template', { ipAddress: ip, userAgent, reason: 'CORS origin not allowed' });
       return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
+    const supabase = await createClient()
+
+    // ✅ Auth check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) });
     }
 
     const body = await request.json()
     const { templateId, templateName, elements, backgroundColor } = body
 
     if (!templateId) {
-      await auditLogger.logFailure('update_template', 'Missing templateId', {
-        ipAddress: ip,
-        userAgent,
-      });
       return NextResponse.json(
         { error: 'templateId مطلوب' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
-    const supabase = await createClient()
+    // ✅ التحقق من ملكية القالب عبر الفعالية
+    const { data: existing } = await supabase
+      .from('event_templates')
+      .select('id, events!inner(user_id)')
+      .eq('id', templateId)
+      .single();
+
+    if (!existing || (existing as any).events?.user_id !== user.id) {
+      return NextResponse.json({ error: 'لا تملك صلاحية تعديل هذا القالب' }, { status: 403, headers: getCorsHeaders(origin) });
+    }
 
     const { data: template, error: updateError } = await supabase
       .from('event_templates')
@@ -276,21 +258,10 @@ export async function PUT(request: NextRequest) {
       .select()
       .single()
 
-    if (updateError) {
-      throw updateError
-    }
+    if (updateError) throw updateError
 
-    // 📝 Log success
-    await auditLogger.logSuccess('update_template', {
-      ipAddress: ip,
-      userAgent,
-      details: { templateId, templateName },
-    });
-
-    // 📊 Track metrics
+    await auditLogger.logSuccess('update_template', { ipAddress: ip, userAgent, details: { templateId, templateName } });
     metricsCollector.incrementCounter('api_templates_updated', 1, {});
-
-    // 📊 Track request duration
     const duration = Date.now() - startTime;
     metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'PUT' });
 
@@ -299,18 +270,11 @@ export async function PUT(request: NextRequest) {
       { status: 200, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
-    // 📝 Log error
-    await auditLogger.logFailure('update_template', error.message || 'Unknown error', {
-      ipAddress: ip,
-      userAgent,
-    });
-
-    // 📊 Track error
+    await auditLogger.logFailure('update_template', error.message || 'Unknown error', { ipAddress: ip, userAgent });
     metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'PUT' });
-
     console.error('Template PUT error:', error)
     return NextResponse.json(
-      { error: error.message || 'خطأ في تحديث التصميم' },
+      { error: 'خطأ في تحديث التصميم' },
       { status: 500, headers: getCorsHeaders(origin) }
     )
   }
@@ -323,52 +287,49 @@ export async function DELETE(request: NextRequest) {
   const origin = request.headers.get('origin');
 
   try {
-    // ✅ CORS Check
     if (origin && !isOriginAllowed(origin)) {
-      await auditLogger.logSuspicious('delete_template', {
-        ipAddress: ip,
-        userAgent,
-        reason: 'CORS origin not allowed',
-      });
+      await auditLogger.logSuspicious('delete_template', { ipAddress: ip, userAgent, reason: 'CORS origin not allowed' });
       return new NextResponse('CORS not allowed', { status: 403 });
+    }
+
+    const supabase = await createClient()
+
+    // ✅ Auth check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: getCorsHeaders(origin) });
     }
 
     const { searchParams } = new URL(request.url)
     const templateId = searchParams.get('templateId')
 
     if (!templateId) {
-      await auditLogger.logFailure('delete_template', 'Missing templateId', {
-        ipAddress: ip,
-        userAgent,
-      });
       return NextResponse.json(
         { error: 'templateId مطلوب' },
         { status: 400, headers: getCorsHeaders(origin) }
       )
     }
 
-    const supabase = await createClient()
+    // ✅ التحقق من ملكية القالب عبر الفعالية
+    const { data: existing } = await supabase
+      .from('event_templates')
+      .select('id, events!inner(user_id)')
+      .eq('id', templateId)
+      .single();
+
+    if (!existing || (existing as any).events?.user_id !== user.id) {
+      return NextResponse.json({ error: 'لا تملك صلاحية حذف هذا القالب' }, { status: 403, headers: getCorsHeaders(origin) });
+    }
 
     const { error: deleteError } = await supabase
       .from('event_templates')
       .delete()
       .eq('id', templateId)
 
-    if (deleteError) {
-      throw deleteError
-    }
+    if (deleteError) throw deleteError
 
-    // 📝 Log success
-    await auditLogger.logSuccess('delete_template', {
-      ipAddress: ip,
-      userAgent,
-      details: { templateId },
-    });
-
-    // 📊 Track metrics
+    await auditLogger.logSuccess('delete_template', { ipAddress: ip, userAgent, details: { templateId } });
     metricsCollector.incrementCounter('api_templates_deleted', 1, {});
-
-    // 📊 Track request duration
     const duration = Date.now() - startTime;
     metricsCollector.recordHistogram('api_request_duration_ms', duration, { route: '/api/templates', method: 'DELETE' });
 
@@ -377,18 +338,11 @@ export async function DELETE(request: NextRequest) {
       { status: 200, headers: getCorsHeaders(origin) }
     )
   } catch (error: any) {
-    // 📝 Log error
-    await auditLogger.logFailure('delete_template', error.message || 'Unknown error', {
-      ipAddress: ip,
-      userAgent,
-    });
-
-    // 📊 Track error
+    await auditLogger.logFailure('delete_template', error.message || 'Unknown error', { ipAddress: ip, userAgent });
     metricsCollector.incrementCounter('api_errors', 1, { route: '/api/templates', method: 'DELETE' });
-
     console.error('Template DELETE error:', error)
     return NextResponse.json(
-      { error: error.message || 'خطأ في حذف التصميم' },
+      { error: 'خطأ في حذف التصميم' },
       { status: 500, headers: getCorsHeaders(origin) }
     )
   }
@@ -397,11 +351,9 @@ export async function DELETE(request: NextRequest) {
 // ✅ Handle CORS preflight
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin');
-
   if (!origin || !isOriginAllowed(origin)) {
     return new NextResponse(null, { status: 403 });
   }
-
   return new NextResponse(null, {
     status: 200,
     headers: getCorsHeaders(origin),

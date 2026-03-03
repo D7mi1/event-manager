@@ -30,8 +30,8 @@
 | الملف | الوصف |
 |------|------|
 | **[VALIDATION_IMPLEMENTATION.md](./VALIDATION_IMPLEMENTATION.md)** | تطبيق التحقق من البيانات |
-| **app/utils/validation.test.ts** | 12 اختبار للدوال |
-| **app/utils/schemas.test.ts** | 18 اختبار للـ Zod schemas |
+| **lib/utils/validation.test.ts** | 12 اختبار للدوال |
+| **lib/schemas.test.ts** | 18 اختبار للـ Zod schemas |
 
 ---
 
@@ -72,15 +72,16 @@ app/
 ├── t/[id]/page.tsx             ← صفحة التذكرة (مع RSVP)
 ├── dashboard/                  ← لوحة تحكم المالك
 ├── scan/                        ← ماسح ضوئي
-└── utils/
-    ├── validation.ts           ← 15+ دوال تحقق
-    ├── schemas.ts              ← Zod schemas
-    └── sentry.ts               ← تتبع الأخطاء
+lib/
+├── utils/
+│   └── validation.ts           ← 15+ دوال تحقق
+├── schemas.ts                  ← Zod schemas
+└── sentry.ts                   ← تتبع الأخطاء
 ```
 
 ### الخدمات
 ```
-hooks/
+lib/hooks/
 ├── useEvent.ts                 ← جلب بيانات الفعالية
 ├── useEventWithCache.ts        ← مع SWR caching
 ├── useTicket.ts                ← جلب بيانات التذكرة

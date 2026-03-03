@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, use } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { DraggableGuest } from '@/components/seating/DraggableGuest';
 import { DroppableTable } from '@/components/seating/DroppableTable';
 import { Loader2, ArrowLeft, Circle, Armchair } from 'lucide-react';

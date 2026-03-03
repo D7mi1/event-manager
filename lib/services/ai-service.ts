@@ -2,7 +2,7 @@
 
 import { HfInference } from '@huggingface/inference';
 
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { InvitationTextSchema, InvitationImageSchema } from '@/lib/schemas';
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);

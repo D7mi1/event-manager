@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/wallet-pass - توليد Wallet Pass للتذكرة
@@ -10,6 +10,13 @@ import { createClient } from '@/app/utils/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+
+    // ✅ Auth check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { ticketId, platform } = body;
 
@@ -20,10 +27,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // جلب بيانات التذكرة والفعالية
+    // جلب بيانات التذكرة والفعالية مع التحقق من الملكية
     const { data: attendee } = await supabase
       .from('attendees')
-      .select('*, events(*)')
+      .select('*, events!inner(*)')
       .eq('id', ticketId)
       .single();
 
@@ -33,12 +40,17 @@ export async function POST(request: NextRequest) {
 
     const event = attendee.events;
 
+    // ✅ التحقق من ملكية الفعالية
+    if (event.user_id !== user.id) {
+      return NextResponse.json({ error: 'لا تملك صلاحية' }, { status: 403 });
+    }
+
     const passData = {
       ticketId: attendee.id,
       guestName: attendee.name,
       eventName: event.name,
-      eventDate: event.event_date
-        ? new Date(event.event_date).toLocaleDateString('ar-SA', {
+      eventDate: event.date
+        ? new Date(event.date).toLocaleDateString('ar-SA', {
             dateStyle: 'long',
           })
         : '',
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Wallet pass error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate wallet pass' },
+      { error: 'Failed to generate wallet pass' },
       { status: 500 }
     );
   }

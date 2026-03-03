@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { Template, DesignElement } from '@/app/utils/templateSchema'
+import { Template, DesignElement } from '@/lib/schemas/template'
 
 interface UseTemplateDesignerProps {
   eventId: string

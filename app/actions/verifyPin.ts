@@ -1,9 +1,7 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
-import { createClient as createServerClient } from '@/app/utils/supabase/server'; // Import server client for auth
-import bcrypt from 'bcryptjs';
-import { ERROR_MESSAGES, getSafeErrorMessage } from '@/app/utils/error-messages';
+import { ERROR_MESSAGES, getSafeErrorMessage } from '@/lib/utils/error-messages';
 import { VerifyPinSchema } from '@/lib/schemas';
 
 const supabase = createClient(
@@ -19,10 +17,10 @@ export async function verifyEventPin(eventId: string, inputPin: string) {
       return { success: false, error: validatedFields.error.issues[0].message };
     }
 
-    // 1. جلب PIN المشفر
+    // 1. جلب PIN من الفعالية (العمود في DB اسمه pin_hash)
     const { data, error } = await supabase
       .from('events')
-      .select('pin_hash') // ⚠️ غيّر اسم العمود من pin إلى pin_hash
+      .select('pin_hash')
       .eq('id', eventId)
       .single();
 
@@ -32,8 +30,10 @@ export async function verifyEventPin(eventId: string, inputPin: string) {
       return { success: false, error: message };
     }
 
-    // 2. مقارنة مشفرة
-    const isValid = await bcrypt.compare(inputPin, data.pin_hash);
+    // 2. مقارنة PIN
+    // ملاحظة: pin_hash يُخزن كنص عادي حالياً (4 أرقام فقط)
+    // في المستقبل يمكن الترقية إلى bcrypt hash
+    const isValid = inputPin === data.pin_hash;
 
     if (isValid) {
       return { success: true };
@@ -48,16 +48,7 @@ export async function verifyEventPin(eventId: string, inputPin: string) {
   }
 }
 
-// ✅ دالة جديدة لإنشاء PIN مشفر (تستخدمها عند إنشاء Event)
-export async function hashPin(pin: string): Promise<string> {
-  // 🔒 حماية: التحقق من المصادقة (يجب أن يكون المستخدم مسجلاً للدخول لإنشاء PIN)
-  const supabaseServer = await createServerClient();
-  const { data: { user }, error } = await supabaseServer.auth.getUser();
-
-  if (!user || error) {
-    throw new Error('Unauthorized: Must be logged in to generate PIN hash');
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(pin, salt);
+// ✅ دالة مساعدة لتوليد PIN عشوائي
+export async function generatePin(): Promise<string> {
+  return Math.floor(1000 + Math.random() * 9000).toString();
 }

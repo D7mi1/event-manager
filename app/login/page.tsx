@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Loader2, CheckCircle2, AlertCircle, Briefcase, PartyPopper, Chrome, ArrowLeft, Eye, EyeOff, ChevronRight, KeyRound } from 'lucide-react';
 import Link from 'next/link';

@@ -1,5 +1,5 @@
 'use client';
-import { useEventStore } from '@/store/eventStore';
+import { useEventStore } from '@/lib/stores/eventStore';
 import { Users, CheckCircle2 } from 'lucide-react';
 
 const DonutChart = ({ percentage, color }: { percentage: number, color: string }) => {

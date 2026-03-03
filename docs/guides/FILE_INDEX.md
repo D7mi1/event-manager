@@ -40,9 +40,9 @@
 
 | الملف | التعديل | الحالة |
 |------|--------|--------|
-| `app/utils/api-error-handler.ts` | ✅ معدّل | تم التحسين |
-| `app/utils/validation.ts` | ✅ معدّل | تم الإضافة |
-| `app/actions/__tests__/api-error-handler.test.ts` | ✅ معدّل | تم الإصلاح |
+| `lib/utils/api-error-handler.ts` | ✅ معدّل | تم التحسين |
+| `lib/utils/validation.ts` | ✅ معدّل | تم الإضافة |
+| `lib/utils/__tests__/api-error-handler.test.ts` | ✅ معدّل | تم الإصلاح |
 
 ---
 
@@ -83,7 +83,7 @@
 1. اقرأ: IMPROVEMENTS_GUIDE.md
 2. اقرأ: SECURITY_IMPROVEMENTS.md
 3. ادرس: VALIDATION_AND_ERROR_EXAMPLES.md
-4. استخدم: الملفات في app/utils/
+4. استخدم: الملفات في lib/
 ```
 
 ### 🟡 أنت مختبِر؟
@@ -101,10 +101,10 @@
 ### 🔐 الأمان (Security)
 - `SECURITY_IMPROVEMENTS.md` - الشرح
 - `RLS_POLICIES_SETUP.sql` - التطبيق
-- `app/utils/api-error-handler.ts` - المعالج الآمن
+- `lib/utils/api-error-handler.ts` - المعالج الآمن
 
 ### ✅ الاختبارات (Testing)
-- `app/actions/__tests__/api-error-handler.test.ts` - الاختبارات الثابتة
+- `lib/utils/__tests__/api-error-handler.test.ts` - الاختبارات الثابتة
 - `COMPLETION_REPORT.md` - النتائج
 
 ### 📚 التوثيق (Documentation)
@@ -115,7 +115,7 @@
 ### 🚀 التطوير (Development)
 - `VALIDATION_AND_ERROR_EXAMPLES.md` - أمثلة
 - `NEXT_STEPS_PLAN.md` - الخطط
-- `app/utils/validation.ts` - الكود
+- `lib/utils/validation.ts` - الكود
 
 ---
 
@@ -231,9 +231,10 @@
 ├─ ✅ FINAL_CHECKLIST.sh              (قائمة تحقق)
 ├─ ✅ FILE_INDEX.md                   (هذا الملف)
 └─ 📁 app/
-   ├─ 📁 utils/
-   │  ├─ ✅ api-error-handler.ts      (معالج الأخطاء)
-   │  └─ ✅ validation.ts             (الـ Validation)
+├─ 📁 lib/
+   │  ├─ 📁 utils/
+   │  │  ├─ ✅ api-error-handler.ts   (معالج الأخطاء)
+   │  │  └─ ✅ validation.ts          (الـ Validation)
    └─ 📁 actions/
       ├─ ✅ verifyPin.ts              (التحقق من PIN)
       └─ 📁 __tests__/

@@ -7,7 +7,7 @@ import {
   MessageCircle, Clock, CheckCircle2, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
-import Navbar from '@/components/Navbar';
+import Navbar from '@/components/layout/Navbar';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

@@ -18,10 +18,13 @@ const config: Config = {
   ],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
+    'components/**/*.{js,jsx,ts,tsx}',
     '!app/**/*.d.ts',
     '!app/**/_*.{js,jsx,ts,tsx}',
     '!app/**/layout.tsx',
     '!app/**/page.tsx',
+    '!lib/**/*.d.ts',
   ],
 };
 

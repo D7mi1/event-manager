@@ -70,21 +70,31 @@ export async function POST(request: NextRequest) {
         const planId = resolvePlanFromPriceId(priceId);
         const status = subscriptionData.status;
 
-        // تحديث الملف الشخصي
-        const updateData: Record<string, any> = {
-          plan_id: planId,
-          subscription_id: subscriptionData.id,
-          subscription_status: status,
-          polar_customer_id: subscriptionData.customer_id,
+        // تحديث جدول subscriptions (المصدر الرئيسي لبيانات الاشتراك)
+        const subscriptionUpdate: Record<string, any> = {
+          plan_tier: planId,
+          stripe_subscription_id: subscriptionData.id,
+          stripe_customer_id: subscriptionData.customer_id,
+          status: status,
           updated_at: new Date().toISOString(),
         };
 
-        // إضافة تاريخ نهاية الفترة
         if (subscriptionData.current_period_end) {
-          updateData.subscription_period_end = subscriptionData.current_period_end;
+          subscriptionUpdate.current_period_end = subscriptionData.current_period_end;
         }
 
-        await supabase.from('profiles').update(updateData).eq('id', userId);
+        // upsert في subscriptions (إنشاء أو تحديث)
+        await supabase.from('subscriptions').upsert({
+          user_id: userId,
+          ...subscriptionUpdate,
+        }, { onConflict: 'user_id' });
+
+        // تحديث profiles بالأعمدة الموجودة فعلاً
+        await supabase.from('profiles').update({
+          package_id: planId,
+          subscription_status: status,
+          stripe_customer_id: subscriptionData.customer_id,
+        }).eq('id', userId);
 
         console.log(`[Polar Webhook] ${eventType}: User ${userId} → Plan ${planId} (${status})`);
         break;
@@ -94,9 +104,15 @@ export async function POST(request: NextRequest) {
       // إلغاء (يبقى فعال حتى نهاية الفترة)
       // ==========================================
       case 'subscription.canceled': {
+        // تحديث subscriptions
+        await supabase.from('subscriptions').update({
+          status: 'canceled',
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', userId);
+
+        // تحديث profiles
         await supabase.from('profiles').update({
           subscription_status: 'canceled',
-          updated_at: new Date().toISOString(),
         }).eq('id', userId);
 
         console.log(`[Polar Webhook] subscription.canceled: User ${userId} (active until period end)`);
@@ -107,13 +123,18 @@ export async function POST(request: NextRequest) {
       // إلغاء فوري → رجوع للمجانية
       // ==========================================
       case 'subscription.revoked': {
-        await supabase.from('profiles').update({
-          plan_id: 'free',
-          subscription_id: null,
-          subscription_status: 'revoked',
-          polar_customer_id: null,
-          subscription_period_end: null,
+        // تحديث subscriptions
+        await supabase.from('subscriptions').update({
+          status: 'revoked',
+          plan_tier: 'free',
           updated_at: new Date().toISOString(),
+        }).eq('user_id', userId);
+
+        // تحديث profiles بالأعمدة الموجودة فعلاً
+        await supabase.from('profiles').update({
+          package_id: 'free',
+          subscription_status: 'revoked',
+          stripe_customer_id: null,
         }).eq('id', userId);
 
         console.log(`[Polar Webhook] subscription.revoked: User ${userId} → Free plan`);

@@ -9,7 +9,7 @@
 ## 🎯 التحسينات المطبقة
 
 ### ✅ 1. إصلاح أخطاء الاختبارات
-**الملف المُحدّث:** `app/actions/__tests__/api-error-handler.test.ts`
+**الملف المُحدّث:** `lib/utils/__tests__/api-error-handler.test.ts`
 
 **المشكلة:**
 - ❌ محاولة تعديل متغير قراءة فقط `process.env.NODE_ENV`
@@ -33,7 +33,7 @@ const json = await response.json();
 ---
 
 ### ✅ 2. تحسين معالجة أخطاء API
-**الملف المُحدّث:** `app/utils/api-error-handler.ts`
+**الملف المُحدّث:** `lib/utils/api-error-handler.ts`
 
 **الميزات الجديدة:**
 
@@ -68,7 +68,7 @@ rateLimitError()       // 429
 ---
 
 ### ✅ 3. إضافة Validation شاملة
-**الملف المُحدّث:** `app/utils/validation.ts`
+**الملف المُحدّث:** `lib/utils/validation.ts`
 
 **Validations الجديدة:**
 
@@ -207,9 +207,9 @@ if (Object.keys(errors).length > 0) {
 
 ```
 📝 الملفات المُعدّلة: 3
-  ├── app/utils/api-error-handler.ts (تحسين)
-  ├── app/actions/__tests__/api-error-handler.test.ts (إصلاح)
-  └── app/utils/validation.ts (إضافة)
+  ├── lib/utils/api-error-handler.ts (تحسين)
+  ├── lib/utils/__tests__/api-error-handler.test.ts (إصلاح)
+  └── lib/utils/validation.ts (إضافة)
 
 📄 الملفات المُنشأة: 3
   ├── SECURITY_IMPROVEMENTS.md

@@ -8,10 +8,10 @@ import {
   Loader2, Calendar, MapPin, AlertCircle,
   Briefcase, User, Mail,
 } from 'lucide-react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import * as Sentry from '@sentry/nextjs';
 
-import { useEventWithCache } from '@/app/hooks/useEventWithCache';
+import { useEventWithCache } from '@/lib/hooks/useEventWithCache';
 import { registrationSchema, type RegistrationFormData } from '@/lib/schemas';
 
 // بيانات دول الخليج

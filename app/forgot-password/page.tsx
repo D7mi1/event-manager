@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight, KeyRound } from 'lucide-react';
 

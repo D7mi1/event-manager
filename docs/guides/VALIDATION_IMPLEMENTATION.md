@@ -2,7 +2,7 @@
 
 ## 📋 ملخص التحديثات
 
-تم بنجاح تطبيق دوال التحقق (Validation) المتقدمة من `@/app/utils/validation` في صفحتي التطبيق الرئيسيتين.
+تم بنجاح تطبيق دوال التحقق (Validation) المتقدمة من `@/lib/utils/validation` في صفحتي التطبيق الرئيسيتين.
 
 ---
 
@@ -18,7 +18,7 @@ import {
   validateRequired,
   validatePhoneNotEmpty,  // ✅ تمت إضافته
   formatPhoneNumber 
-} from '@/app/utils/validation';
+} from '@/lib/utils/validation';
 ```
 
 #### دالة `validateForm`:
@@ -64,7 +64,7 @@ const validateForm = () => {
 
 #### الاستيراد:
 ```typescript
-import { validateRequired } from '@/app/utils/validation';
+import { validateRequired } from '@/lib/utils/validation';
 ```
 
 #### دالة `handleSendMemory`:
@@ -143,7 +143,7 @@ const handleSendMemory = async () => {
 ## 📊 نتائج الاختبارات
 
 ```
-PASS  app/utils/validation.test.ts
+PASS  lib/utils/validation.test.ts
 
 Validation Functions
   validateEmail
@@ -184,7 +184,7 @@ Time:        0.621 s
 ### للمطورين:
 ```typescript
 // استيراد الدوال المطلوبة
-import { validateRequired, validateEmail, validatePhone } from '@/app/utils/validation';
+import { validateRequired, validateEmail, validatePhone } from '@/lib/utils/validation';
 
 // في دالة التحقق:
 const nameError = validateRequired(name, 'الاسم');

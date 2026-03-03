@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "rube": {
+      "type": "url",
+      "url": "https://rube.app/mcp"
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp"
+    }
+  }
+}

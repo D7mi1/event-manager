@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import { supabase } from '@/app/utils/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Calendar, MapPin, Type, Loader2, FileText, Link as LinkIcon, Clock, Save, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ export default function EditEvent({ params }: PageProps) {
   const eventId = resolvedParams.id
 
   const [formData, setFormData] = useState({
-    title: '', event_date: '', event_time: '', location: '', description: '', map_link: '', allow_multiple_entry: false
+    name: '', date: '', event_time: '', location_name: '', description: '', location_link: '', allow_multiple_entry: false
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,20 +38,21 @@ export default function EditEvent({ params }: PageProps) {
     const { error } = await supabase
       .from('events')
       .update({
-        title: formData.title,
-        event_date: formData.event_date,
+        name: formData.name,
+        date: formData.date,
         event_time: formData.event_time,
-        location: formData.location,
+        location_name: formData.location_name,
         description: formData.description,
-        map_link: formData.map_link,
+        location_link: formData.location_link,
         allow_multiple_entry: formData.allow_multiple_entry
       })
       .eq('id', eventId)
 
+    setSaving(false)
     if (error) {
       toast.error('حدث خطأ أثناء التحديث')
-      setSaving(false)
     } else {
+      toast.success('تم حفظ التعديلات')
       router.push('/dashboard')
       router.refresh()
     }
@@ -67,21 +68,21 @@ export default function EditEvent({ params }: PageProps) {
       <form onSubmit={handleUpdate} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
 
         {/* الاسم */}
-        <div><label className="block text-slate-700 font-medium mb-2">اسم المناسبة</label><div className="relative"><Type className="absolute right-3 top-3 text-slate-400" size={20} /><input type="text" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} /></div></div>
+        <div><label className="block text-slate-700 font-medium mb-2">اسم المناسبة</label><div className="relative"><Type className="absolute right-3 top-3 text-slate-400" size={20} /><input type="text" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div></div>
 
         {/* الوصف */}
         <div><label className="block text-slate-700 font-medium mb-2">التفاصيل</label><div className="relative"><FileText className="absolute right-3 top-3 text-slate-400" size={20} /><textarea className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 min-h-[100px]" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div></div>
 
         {/* التاريخ والوقت */}
         <div className="grid grid-cols-2 gap-4">
-          <div><label className="block text-slate-700 font-medium mb-2">التاريخ</label><div className="relative"><Calendar className="absolute right-3 top-3 text-slate-400" size={20} /><input type="date" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 text-right" value={formData.event_date} onChange={(e) => setFormData({ ...formData, event_date: e.target.value })} /></div></div>
+          <div><label className="block text-slate-700 font-medium mb-2">التاريخ</label><div className="relative"><Calendar className="absolute right-3 top-3 text-slate-400" size={20} /><input type="date" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 text-right" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div></div>
           <div><label className="block text-slate-700 font-medium mb-2">الوقت</label><div className="relative"><Clock className="absolute right-3 top-3 text-slate-400" size={20} /><input type="time" className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 text-right" value={formData.event_time || ''} onChange={(e) => setFormData({ ...formData, event_time: e.target.value })} /></div></div>
         </div>
 
         {/* الموقع */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label className="block text-slate-700 font-medium mb-2">الموقع</label><div className="relative"><MapPin className="absolute right-3 top-3 text-slate-400" size={20} /><input type="text" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div></div>
-          <div><label className="block text-slate-700 font-medium mb-2">رابط الخريطة</label><div className="relative"><LinkIcon className="absolute right-3 top-3 text-slate-400" size={20} /><input type="url" className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 text-left" dir="ltr" value={formData.map_link || ''} onChange={(e) => setFormData({ ...formData, map_link: e.target.value })} /></div></div>
+          <div><label className="block text-slate-700 font-medium mb-2">الموقع</label><div className="relative"><MapPin className="absolute right-3 top-3 text-slate-400" size={20} /><input type="text" required className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500" value={formData.location_name} onChange={(e) => setFormData({ ...formData, location_name: e.target.value })} /></div></div>
+          <div><label className="block text-slate-700 font-medium mb-2">رابط الخريطة</label><div className="relative"><LinkIcon className="absolute right-3 top-3 text-slate-400" size={20} /><input type="url" className="w-full p-3 pr-10 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 text-left" dir="ltr" value={formData.location_link || ''} onChange={(e) => setFormData({ ...formData, location_link: e.target.value })} /></div></div>
         </div>
 
         {/* خيار التكرار */}

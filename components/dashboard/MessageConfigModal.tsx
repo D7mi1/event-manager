@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEventStore } from '@/store/eventStore';
+import { useEventStore } from '@/lib/stores/eventStore';
 import { X, MessageCircle, Save, MapPin, Bell, Loader2 } from 'lucide-react';
 import { MessageConfigFormSchema, type MessageConfigFormInput } from '@/lib/schemas';
 

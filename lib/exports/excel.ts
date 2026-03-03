@@ -11,7 +11,7 @@ import { saveAs } from 'file-saver';
 export interface ExcelGuest {
   name: string;
   phone: string;
-  category: string;
+  category?: string;
   status: string;
   attended: boolean;
   updated_at: string;

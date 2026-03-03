@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   User, CreditCard, Shield, Download, Check, Loader2,
@@ -55,13 +55,21 @@ export default function SettingsPage() {
         setFullName(profileData.full_name || '');
         setCompanyName(profileData.company_name || '');
         setTaxNumber(profileData.tax_number || '');
-        // بيانات الاشتراك
-        if (profileData.plan_id && profileData.plan_id in PLANS) {
-          setCurrentPlanId(profileData.plan_id as PlanId);
+        // بيانات الاشتراك من profiles (الأعمدة الفعلية: package_id, subscription_status, stripe_customer_id)
+        if (profileData.package_id && profileData.package_id in PLANS) {
+          setCurrentPlanId(profileData.package_id as PlanId);
         }
         setSubscriptionStatus(profileData.subscription_status || null);
-        setSubscriptionPeriodEnd(profileData.subscription_period_end || null);
-        setPolarCustomerId(profileData.polar_customer_id || null);
+
+        // جلب بيانات الاشتراك التفصيلية من subscriptions table
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('current_period_end, stripe_customer_id')
+          .eq('user_id', currentUser.id)
+          .eq('status', 'active')
+          .single();
+        setSubscriptionPeriodEnd(subData?.current_period_end || null);
+        setPolarCustomerId(subData?.stripe_customer_id || null);
       }
       setLoading(false);
     };

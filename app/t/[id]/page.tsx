@@ -3,7 +3,7 @@
 
 import { useRef, use, useState, useEffect } from 'react';
 
-import { useTicket } from '@/app/hooks/useTicket';
+import { useTicket } from '@/lib/hooks/useTicket';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import {
@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Attendee } from '@/types';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { APP_URL } from '@/app/config/constants';
-import { validateRequired } from '@/app/utils/validation';
+import { validateRequired } from '@/lib/utils/validation';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -106,7 +106,8 @@ export default function TicketPage({ params }: PageProps) {
     try {
       const { error: insertError } = await supabase.from('memories').insert({
         event_id: ticket?.event_id,
-        attendee_id: ticket?.id,
+        guest_id: ticket?.id,
+        image_url: '',  // DB requires NOT NULL - text-only memory
         message: memoryText,
       });
 

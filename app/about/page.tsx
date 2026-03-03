@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Navbar from '@/components/Navbar'; // Assuming Navbar component exists
-import { supabase } from '@/app/utils/supabase/client';
+import Navbar from '@/components/layout/Navbar';
+import { supabase } from '@/lib/supabase/client';
 import { Building2, Users, Trophy, Target } from 'lucide-react';
 import Link from 'next/link';
 

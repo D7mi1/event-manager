@@ -1,9 +1,4 @@
-import { handleApiError, ApiError } from '@/app/utils/api-error-handler';
-
-// Mock Sentry
-jest.mock('../../sentry', () => ({
-  captureError: jest.fn()
-}));
+import { handleApiError, ApiError } from '@/lib/utils/api-error-handler';
 
 describe('API Error Handler', () => {
   // استخدام env override بدلاً من تعديل المتغير مباشرة

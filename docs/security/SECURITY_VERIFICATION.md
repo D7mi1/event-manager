@@ -10,7 +10,7 @@
 
 ### 1.1 Supabase Authentication (المصادقة)
 ```typescript
-// ملف: app/utils/supabase/server.ts
+// ملف: lib/supabase/server.ts
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -79,7 +79,7 @@ UPDATE: id = auth.uid()
 
 ### 3.1 Validation على مستوى العميل
 ```typescript
-// ملف: app/utils/validation.ts
+// ملف: lib/utils/validation.ts
 export const validateEmail = (email: string): boolean => {
   // ✅ التحقق من صيغة البريد
   return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email)
@@ -98,7 +98,7 @@ export const validatePassword = (password: string): boolean => {
 
 ### 3.2 Validation على مستوى الخادم (Zod Schemas)
 ```typescript
-// ملف: app/utils/schemas.ts
+// ملف: lib/schemas.ts
 import { z } from 'zod'
 
 export const registrationSchema = z.object({
@@ -181,7 +181,7 @@ if (data.error) {
 
 ### 5.1 Sentry Integration
 ```typescript
-// ملف: app/utils/sentry.ts
+// ملف: lib/sentry.ts
 import * as Sentry from "@sentry/nextjs"
 
 // ✅ تسجيل الأخطاء بدون كشف البيانات الحساسة

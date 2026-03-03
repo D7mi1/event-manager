@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, use } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import {
   Loader2, ScanLine, Lock, CheckCircle2, XCircle,

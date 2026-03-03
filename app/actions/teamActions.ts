@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { type ActionResult, withAuthAction, actionError, actionSuccess, actionOk } from '@/lib/actions/action-result';
 import type { InviteTeamMemberInput, TeamMember } from '@/lib/teams';
 import type { Role } from '@/lib/permissions';

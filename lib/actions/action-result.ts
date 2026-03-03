@@ -85,7 +85,7 @@ export async function withAuthAction<T>(
 ): Promise<ActionResult<T>> {
   try {
     // Dynamic import لتجنب مشاكل client/server
-    const { createClient } = await import('@/app/utils/supabase/server');
+    const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
     const {
       data: { user },

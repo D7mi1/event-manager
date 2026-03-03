@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/utils/supabase/server';
-import { generateInvitationImage } from '@/app/utils/ai-service';
-import { handleApiError } from '@/app/utils/api-error-handler';
+import { createClient } from '@/lib/supabase/server';
+import { generateInvitationImage } from '@/lib/services/ai-service';
+import { handleApiError } from '@/lib/utils/api-error-handler';
 import { aiLimiter, getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {

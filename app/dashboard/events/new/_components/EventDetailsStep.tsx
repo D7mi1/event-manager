@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Calendar, MapPin, Loader2, Info } from 'lucide-react';
 import NextImage from 'next/image';
-import { uploadEventImage } from '@/app/utils/storage';
+import { uploadEventImage } from '@/lib/utils/storage';
 import { toast } from 'sonner';
 
 interface Props {

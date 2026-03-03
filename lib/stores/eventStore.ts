@@ -1,15 +1,18 @@
 import { create } from 'zustand';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
 export interface Attendee {
   id: string;
   name: string;
   phone: string;
-  category: string;
+  category?: string; // ⏳ يُضاف عبر migration - القيم: GENERAL, VIP, FAMILY
   status: string; // 'invited', 'confirmed', 'declined'
   attended: boolean;
   updated_at: string;
+  attended_at?: string | null;
+  companions_count?: number;
+  food_preference?: string;
   seats?: any[];
 }
 
@@ -99,14 +102,14 @@ export const useEventStore = create<EventState>((set, get) => ({
     // ✅ تحسين 1: جلب الأعمدة المطلوبة فقط للفعالية
     const { data: event } = await supabase
       .from('events')
-      .select('id, name, date, location_name, type, status, guests_count, is_registration_open, image_url, theme_color, pin')
+      .select('id, name, date, location_name, type, status, guests_count, is_registration_open, image_url, theme_color, pin_hash')
       .eq('id', eventId)
       .single();
 
     // ✅ تحسين 2: إزالة الـ Joins الثقيلة وتحديد الأعمدة
     const { data: attendees } = await supabase
       .from('attendees')
-      .select('id, name, phone, category, status, attended, updated_at, created_at, seats(seat_number, table:tables(name))')
+      .select('id, name, phone, status, attended, updated_at, created_at, seats(seat_number, table:tables(name))')
       .eq('event_id', eventId)
       .order('created_at', { ascending: false });
 

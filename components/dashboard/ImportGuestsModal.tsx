@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import readXlsxFile from 'read-excel-file';
-import { useEventStore } from '@/store/eventStore';
+import { useEventStore } from '@/lib/stores/eventStore';
 import { X, UploadCloud, AlertTriangle, CheckCircle, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 

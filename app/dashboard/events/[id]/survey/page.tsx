@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, use, useState } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { SURVEY_TEMPLATES, type SurveyDefinition, type SurveyQuestion } from '@/lib/surveys/types';
 import { SurveyRenderer } from '@/components/surveys/SurveyRenderer';
 import { Loader2, ArrowLeft, Copy, Check, Plus, Eye } from 'lucide-react';

@@ -2,8 +2,8 @@
 
 import React, { useRef, useEffect, useState } from 'react'
 import { Plus, Trash2, Copy, Download, Save } from 'lucide-react'
-import useTemplateDesigner from '@/app/hooks/useTemplateDesigner'
-import { DesignElement } from '@/app/utils/templateSchema'
+import useTemplateDesigner from '@/lib/hooks/useTemplateDesigner'
+import { DesignElement } from '@/lib/schemas/template'
 
 interface TemplateDesignerProps {
   eventId: string

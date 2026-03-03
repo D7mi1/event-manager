@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/utils/supabase/server';
-import { checkGuestsLimit, incrementGuestsUsed, decrementGuestsUsed } from '@/app/utils/check-limits-v2';
-import { handleApiError } from '@/app/utils/api-error-handler';
+import { createClient } from '@/lib/supabase/server';
+import { checkGuestsLimit, incrementGuestsUsed, decrementGuestsUsed } from '@/lib/utils/check-limits';
+import { handleApiError } from '@/lib/utils/api-error-handler';
 import { auditLogger } from '@/lib/audit-logger';
 import { metricsCollector } from '@/lib/metrics';
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors';
@@ -68,7 +68,10 @@ export async function POST(request: NextRequest) {
 
     // جلب البيانات من Request
     const body = await request.json();
-    const { name, email, phone, event_id, status = 'pending' } = body;
+    const { name, email, phone, event_id } = body;
+    // ✅ تقييد قيم الحالة المسموحة
+    const ALLOWED_STATUSES = ['pending', 'approved', 'declined', 'waitlist'];
+    const status = ALLOWED_STATUSES.includes(body.status) ? body.status : 'pending';
 
     // Validation
     if (!name || !event_id) {
@@ -81,6 +84,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'الاسم ومعرف الحدث مطلوبان' },
         { status: 400, headers: getCorsHeaders(origin || "") }
+      );
+    }
+
+    // ✅ التحقق من ملكية الفعالية
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('id')
+      .eq('id', event_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (eventError || !event) {
+      await auditLogger.logSuspicious('add_guest', {
+        userId: user.id,
+        eventId: event_id,
+        ipAddress: ip,
+        userAgent,
+        reason: 'Attempted to add guest to event not owned by user',
+      });
+      return NextResponse.json(
+        { error: 'الفعالية غير موجودة أو لا تملك صلاحية' },
+        { status: 403, headers: getCorsHeaders(origin || "") }
       );
     }
 
@@ -185,16 +210,40 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'معرف الضيف مطلوب' }, { status: 400, headers: getCorsHeaders(origin || "") });
     }
 
+    // ✅ التحقق من ملكية الضيف عبر الفعالية
+    const { data: guest } = await supabase
+      .from('attendees')
+      .select('id, event_id, events!inner(user_id)')
+      .eq('id', guestId)
+      .single();
+
+    if (!guest || (guest as any).events?.user_id !== user.id) {
+      await auditLogger.logSuspicious('delete_guest', {
+        userId: user.id,
+        guestId,
+        ipAddress: ip,
+        userAgent,
+        reason: 'Attempted to delete guest from event not owned by user',
+      });
+      return NextResponse.json(
+        { error: 'لا تملك صلاحية حذف هذا الضيف' },
+        { status: 403, headers: getCorsHeaders(origin || "") }
+      );
+    }
+
     // حذف الضيف
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from('attendees')
       .delete()
-      .eq('id', guestId);
+      .eq('id', guestId)
+      .select();
 
     if (error) throw error;
 
-    // ✅ تقليل العداد
-    await decrementGuestsUsed(user.id);
+    // ✅ تقليل العداد فقط إذا تم الحذف فعلاً
+    if (count !== null ? count > 0 : true) {
+      await decrementGuestsUsed(user.id);
+    }
 
     // 📝 Log success
     await auditLogger.logSuccess('delete_guest', {

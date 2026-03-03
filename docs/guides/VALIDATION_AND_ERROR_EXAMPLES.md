@@ -7,10 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { validateEventData, validatePin } from '@/app/utils/validation';
-import { handleApiError, validationError, unauthorizedError } from '@/app/utils/api-error-handler';
+import { validateEventData, validatePin } from '@/lib/utils/validation';
+import { handleApiError, validationError, unauthorizedError } from '@/lib/utils/api-error-handler';
 import { hashPin } from '@/app/actions/verifyPin';
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 // Example: POST /api/events
 export async function exampleCreateEvent(request: NextRequest) {
@@ -163,7 +163,7 @@ export async function exampleVerifyPin(request: NextRequest) {
 
 // استخدام في أي صفحة React:
 
-import { validateEventData, validatePin } from '@/app/utils/validation';
+import { validateEventData, validatePin } from '@/lib/utils/validation';
 
 export default function CreateEventPage() {
   const [formData, setFormData] = useState({

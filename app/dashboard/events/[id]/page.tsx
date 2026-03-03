@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, use } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
-import { useEventStore } from '@/store/eventStore';
+import { supabase } from '@/lib/supabase/client';
+import { useEventStore } from '@/lib/stores/eventStore';
 
 // ✅ استيراد البطاقة المدمجة الجديدة (Scanner + PIN)
 import ScannerAccessCard from '@/components/dashboard/ScannerAccessCard';
@@ -53,8 +53,8 @@ export default function EventControlRoom({ params }: PageProps) {
     try {
       await exportGuestsToExcel({
         eventName: eventDetails?.name || 'فعالية',
-        eventDate: eventDetails?.event_date
-          ? new Date(eventDetails.event_date).toLocaleDateString('ar-SA')
+        eventDate: eventDetails?.date
+          ? new Date(eventDetails.date).toLocaleDateString('ar-SA')
           : undefined,
         guests: attendees,
         includeStats: true,
@@ -185,7 +185,7 @@ export default function EventControlRoom({ params }: PageProps) {
             {/* ✅ هنا التغيير الجذري: استخدام البطاقة المدمجة بدلاً من العنصرين المنفصلين */}
             <ScannerAccessCard 
                eventId={id} 
-               currentPin={eventDetails?.pin || '0000'} 
+               currentPin={eventDetails?.pin_hash || '0000'} 
             />
 
             {/* بطاقة رابط التسجيل */}

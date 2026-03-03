@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Settings, Lock, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queries/query-keys';
@@ -29,7 +29,7 @@ export default function PinSettings({ eventId, currentPin }: { eventId: string, 
     try {
       const { error: updateError } = await supabase
         .from('events')
-        .update({ pin: data.newPin })
+        .update({ pin_hash: data.newPin })
         .eq('id', eventId);
 
       if (updateError) throw updateError;

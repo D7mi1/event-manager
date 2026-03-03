@@ -186,42 +186,19 @@ CREATE POLICY "Event owners can delete tickets"
 -- ============================================================
 ALTER TABLE memories ENABLE ROW LEVEL SECURITY;
 
--- ✅ الجميع يرون الذكريات المعتمدة
-CREATE POLICY "Public memories are viewable"
+-- ✅ الجميع يرون الذكريات (جدار الذكريات عام)
+CREATE POLICY "Anyone can view memories"
   ON memories
   FOR SELECT
-  USING (is_approved = true OR auth.uid() = user_id);
+  USING (true);
 
--- ✅ مالك الفعالية يرى جميع الذكريات (معتمدة وغير معتمدة)
-CREATE POLICY "Event owners can view all memories"
-  ON memories
-  FOR SELECT
-  USING (
-    event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
-    )
-  );
-
--- ✅ الضيوف يكتبون ذكرياتهم
-CREATE POLICY "Attendees can insert memories"
+-- ✅ أي شخص يمكنه إضافة ذكرى (الضيوف غير مسجلين دخول عادةً)
+CREATE POLICY "Anyone can insert memories"
   ON memories
   FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (true);
 
--- ✅ الضيوف يمكنهم تحديث ذكرياتهم
-CREATE POLICY "Attendees can update own memories"
-  ON memories
-  FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
--- ✅ الضيوف يمكنهم حذف ذكرياتهم
-CREATE POLICY "Attendees can delete own memories"
-  ON memories
-  FOR DELETE
-  USING (auth.uid() = user_id);
-
--- ✅ مالك الفعالية يمكنه تعديل حالة الموافقة
+-- ✅ مالك الفعالية يمكنه حذف/تعديل الذكريات (الإشراف)
 CREATE POLICY "Event owners can moderate memories"
   ON memories
   FOR UPDATE
@@ -231,6 +208,15 @@ CREATE POLICY "Event owners can moderate memories"
     )
   )
   WITH CHECK (
+    event_id IN (
+      SELECT id FROM events WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Event owners can delete memories"
+  ON memories
+  FOR DELETE
+  USING (
     event_id IN (
       SELECT id FROM events WHERE user_id = auth.uid()
     )
@@ -258,29 +244,14 @@ CREATE POLICY "Users can update own subscription"
 
 
 -- ============================================================
--- 7️⃣ جدول SEATING (الجلوس)
+-- 7️⃣ جداول TABLES + SEATS (ترتيب الجلوس)
 -- ============================================================
-ALTER TABLE seating ENABLE ROW LEVEL SECURITY;
 
--- ✅ مالك الفعالية يرى ترتيب المقاعد
-CREATE POLICY "Event owners can view seating"
-  ON seating
-  FOR SELECT
-  USING (
-    event_id IN (
-      SELECT id FROM events WHERE user_id = auth.uid()
-    )
-  );
+-- جدول الطاولات
+ALTER TABLE tables ENABLE ROW LEVEL SECURITY;
 
--- ✅ الضيوف يرون مقاعدهم
-CREATE POLICY "Attendees can view own seat"
-  ON seating
-  FOR SELECT
-  USING (auth.uid() = attendee_id);
-
--- ✅ مالك الفعالية يمكنه تعديل الجلوس
-CREATE POLICY "Event owners can manage seating"
-  ON seating
+CREATE POLICY "Event owners can manage tables"
+  ON tables
   FOR ALL
   USING (
     event_id IN (
@@ -292,6 +263,33 @@ CREATE POLICY "Event owners can manage seating"
       SELECT id FROM events WHERE user_id = auth.uid()
     )
   );
+
+-- جدول المقاعد
+ALTER TABLE seats ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Event owners can manage seats"
+  ON seats
+  FOR ALL
+  USING (
+    table_id IN (
+      SELECT t.id FROM tables t
+      JOIN events e ON e.id = t.event_id
+      WHERE e.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    table_id IN (
+      SELECT t.id FROM tables t
+      JOIN events e ON e.id = t.event_id
+      WHERE e.user_id = auth.uid()
+    )
+  );
+
+-- ✅ الضيوف يرون مقاعدهم
+CREATE POLICY "Attendees can view own seat"
+  ON seats
+  FOR SELECT
+  USING (auth.uid() = attendee_id);
 
 
 -- ============================================================
@@ -314,16 +312,16 @@ CREATE POLICY "Users can update own settings"
 
 
 -- ============================================================
--- 9️⃣ جدول AUDIT_LOG (سجل الأنشطة) - للقراءة فقط
+-- 9️⃣ جدول AUDIT_LOGS (سجل الأنشطة) - للقراءة فقط
 -- ============================================================
-ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- ✅ مالك الفعالية يرى أنشطة فعاليته
-CREATE POLICY "Event owners can view audit log"
-  ON audit_log
+CREATE POLICY "Event owners can view audit logs"
+  ON audit_logs
   FOR SELECT
   USING (
-    resource_id IN (
+    event_id IN (
       SELECT id FROM events WHERE user_id = auth.uid()
     )
   );

@@ -65,6 +65,12 @@ export async function POST(request: NextRequest) {
 
     const subjectLabel = SUBJECTS[subject] || 'استفسار عام';
 
+    // ✅ تنظيف المدخلات لمنع XSS في HTML الإيميل
+    const sanitize = (str: string) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const safeName = sanitize(name.trim());
+    const safeEmail = sanitize(email.trim());
+    const safeMessage = sanitize(message.trim());
+
     // إرسال الإيميل عبر Resend (إذا كان مفعل)
     if (process.env.RESEND_API_KEY) {
       const { Resend } = await import('resend');
@@ -76,7 +82,7 @@ export async function POST(request: NextRequest) {
       await resend.emails.send({
         from: 'Meras Contact <onboarding@resend.dev>',
         to: [adminEmail],
-        subject: `[مِراس] ${subjectLabel} - من ${name}`,
+        subject: `[مِراس] ${subjectLabel} - من ${name.trim()}`,
         html: `
           <!DOCTYPE html>
           <html dir="rtl" lang="ar">
@@ -102,18 +108,18 @@ export async function POST(request: NextRequest) {
               <div class="body">
                 <div class="field">
                   <div class="label">الاسم</div>
-                  <div class="value">${name}</div>
+                  <div class="value">${safeName}</div>
                 </div>
                 <div class="field">
                   <div class="label">البريد الإلكتروني</div>
-                  <div class="value" style="direction: ltr; text-align: left;">${email}</div>
+                  <div class="value" style="direction: ltr; text-align: left;">${safeEmail}</div>
                 </div>
                 <div class="field">
                   <div class="label">الموضوع</div>
                   <div class="value">${subjectLabel}</div>
                 </div>
                 <div class="label" style="margin-top: 16px;">الرسالة:</div>
-                <div class="message-box">${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                <div class="message-box">${safeMessage}</div>
               </div>
               <div class="footer">
                 مِراس - منصة إدارة الفعاليات | ${new Date().toLocaleDateString('ar-SA')}
@@ -147,7 +153,7 @@ export async function POST(request: NextRequest) {
                 <h1 style="margin:0; font-size: 22px;">شكراً لتواصلك معنا! 💙</h1>
               </div>
               <div class="body">
-                <p>أهلاً <strong>${name}</strong>،</p>
+                <p>أهلاً <strong>${safeName}</strong>،</p>
                 <p>تم استلام رسالتك بنجاح. سيقوم فريقنا بالرد عليك خلال <strong>24 ساعة عمل</strong>.</p>
                 <p style="color: #6b7280; font-size: 14px;">إذا كان استفسارك عاجلاً، يمكنك التواصل معنا مباشرة عبر واتساب.</p>
                 <p style="margin-top: 24px;">مع أطيب التحيات،<br/><strong>فريق مِراس</strong></p>

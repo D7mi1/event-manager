@@ -3,8 +3,8 @@ import { Alexandria } from "next/font/google";
 import "./globals.css";
 import { validateEnvironment } from "@/lib/env-validation";
 import { AppProviders } from "@/lib/providers/app-providers";
-import Analytics from "@/components/Analytics";
-import LiveChat from "@/components/LiveChat";
+import Analytics from "@/components/layout/Analytics";
+import LiveChat from "@/components/layout/LiveChat";
 
 // ✅ التحقق من متغيرات البيئة عند بدء التطبيق
 validateEnvironment();
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | منصة مِراس"
   },
   description: "الخيار الأول للجهات الحكومية والخاصة في السعودية لإدارة الحشود، إصدار البطاقات الرقمية، وتنظيم بروتوكول الاستقبال بتقنيات الذكاء الاصطناعي.",
-  keywords: ["تنظيم مؤتمرات", "دخول ذكي", "باركود فعاليات", "نظام RSVP سعودي", "إدارة حشود", "منصة تذاكر", "تنظيم فعاليات السعودية"],
+  keywords: ["تنظيم مؤتمرات", "دخول ذكي", "باركود فعاليات", "نظام RSVP سعودي", "إدارة حشود", "منصة تذاكر", "تنظيم فعاليات السعودية", "تنظيم حفلات زفاف", "دعوات زفاف رقمية", "باركود زواج", "تذاكر زواج إلكترونية", "تنظيم زواج السعودية", "بطاقات دعوة إلكترونية"],
   alternates: {
     canonical: "https://meras.sa",
     languages: {
@@ -118,6 +118,22 @@ const jsonLd = {
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "بالتأكيد، مِراس هي منصة تذاكر متكاملة تدعم بيع التذاكر وإدارة المقاعد للحفلات والفعاليات الترفيهية."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "كيف أنظم حفل زفافي باستخدام مِراس؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "اختر باقة الزفاف المناسبة (تبدأ من 149 ريال)، أضف قائمة الضيوف، وأرسل الدعوات الرقمية عبر واتساب. يوم الحفل، استخدم الماسح الذكي لتسجيل الحضور."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "هل يمكن إرسال دعوات الزواج عبر الواتساب؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "نعم، مِراس توفر إرسال دعوات زواج رقمية مصممة باحترافية عبر واتساب مع باركود خاص لكل ضيف لتسجيل الحضور."
           }
         }
       ]

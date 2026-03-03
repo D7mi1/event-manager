@@ -145,7 +145,7 @@ npm install express-rate-limit
 
 ```typescript
 // 1. إنشاء دالة logging
-// app/utils/auditLog.ts
+// lib/utils/auditLog.ts
 
 // 2. تسجيل العمليات الحساسة:
 // - إنشاء/تعديل/حذف فعالية

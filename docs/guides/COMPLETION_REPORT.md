@@ -21,18 +21,18 @@
 
 ### 🔧 الملفات المعدّلة: 3
 ```
-1. app/utils/api-error-handler.ts (137 سطر)
+1. lib/utils/api-error-handler.ts (137 سطر)
    - إعادة كتابة شاملة
    - إضافة فئة ApiError
    - تصنيف الأخطاء الذكي
    - 6 دوال مساعدة
 
-2. app/actions/__tests__/api-error-handler.test.ts (79 سطر)
+2. lib/utils/__tests__/api-error-handler.test.ts (79 سطر)
    - إصلاح أخطاء NODE_ENV
    - إضافة async/await
    - اختبارات جديدة
 
-3. app/utils/validation.ts (زيادة 200+ سطر)
+3. lib/utils/validation.ts (زيادة 200+ سطر)
    - 8 دوال validation جديدة
    - تحقق شامل من البيانات
    - رسائل خطأ واضحة

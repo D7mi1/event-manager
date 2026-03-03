@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Crown, Zap, MessageCircle, Users, AlertTriangle, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { PLANS, type PlanId } from '@/lib/billing/plans';
+import { PLANS } from '@/lib/billing/plans';
 
 export default function SubscriptionTracker() {
   const [loading, setLoading] = useState(true);
@@ -14,32 +14,42 @@ export default function SubscriptionTracker() {
     const fetchSub = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // جلب البروفايل لمعرفة الخطة الفعلية
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('plan_id, subscription_status, subscription_period_end')
-          .eq('id', user.id)
+        // 1. جلب الاشتراك من subscriptions table (المصدر الفعلي في DB)
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('plan_tier, status, guests_limit, guests_used, messages_limit, messages_used, current_period_end')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
           .single();
 
-        const planId: PlanId = (profile?.plan_id && profile.plan_id in PLANS)
-          ? (profile.plan_id as PlanId)
-          : 'free';
-        const plan = PLANS[planId];
-
-        // جلب عدد الضيوف الفعلي من قاعدة البيانات
-        const { count: guestsUsed } = await supabase
-          .from('attendees')
-          .select('*', { count: 'exact', head: true })
+        // 2. حساب عدد الضيوف الفعلي من attendees
+        const { data: userEvents } = await supabase
+          .from('events')
+          .select('id')
           .eq('user_id', user.id);
 
+        const eventIds = userEvents?.map(e => e.id) || [];
+        let guestsUsed = 0;
+        if (eventIds.length > 0) {
+          const { count } = await supabase
+            .from('attendees')
+            .select('*', { count: 'exact', head: true })
+            .in('event_id', eventIds);
+          guestsUsed = count ?? 0;
+        }
+
+        // 3. تحديد الخطة والحدود
+        const planTier = subscription?.plan_tier || 'free';
+        const plan = PLANS[planTier as keyof typeof PLANS] || PLANS.free;
+
         setSub({
-          plan_tier: planId,
+          plan_tier: planTier,
           plan_name: plan.nameAr,
-          guests_limit: plan.limits.maxGuestsPerEvent,
+          guests_limit: subscription?.guests_limit || plan.limits.maxGuestsPerEvent,
           guests_used: guestsUsed || 0,
-          messages_limit: plan.limits.whatsappMessages,
-          messages_used: 0,
-          renews_at: profile?.subscription_period_end
+          messages_limit: subscription?.messages_limit || plan.limits.whatsappMessages,
+          messages_used: subscription?.messages_used || 0,
+          renews_at: subscription?.current_period_end
             || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         });
       }
@@ -49,6 +59,7 @@ export default function SubscriptionTracker() {
   }, []);
 
   if (loading) return <div className="h-48 bg-white/5 rounded-[2rem] animate-pulse"></div>;
+  if (!sub) return null;
 
   // حساب النسب المئوية
   const guestPercentage = Math.min((sub.guests_used / sub.guests_limit) * 100, 100);
@@ -64,7 +75,7 @@ export default function SubscriptionTracker() {
 
   return (
     <div className="bg-gradient-to-br from-[#1A1A1D] to-[#0F0F12] border border-white/10 rounded-[2rem] p-6 relative overflow-hidden group">
-      
+
       {/* خلفية جمالية */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-[#C19D65]/5 rounded-full blur-[50px] pointer-events-none"></div>
 
@@ -91,12 +102,12 @@ export default function SubscriptionTracker() {
           <span className="text-white font-bold">{sub.guests_used} <span className="text-white/30">/ {sub.guests_limit}</span></span>
         </div>
         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
-          <div 
-            className={`h-full rounded-full transition-all duration-1000 ${getProgressColor()}`} 
+          <div
+            className={`h-full rounded-full transition-all duration-1000 ${getProgressColor()}`}
             style={{ width: `${guestPercentage}%` }}
           ></div>
         </div>
-        
+
         {/* رسالة التنبيه الذكية (Upsell Trigger) */}
         {isApproachingLimit && isFreePlan && (
           <div className="mt-3 flex items-start gap-2 bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
@@ -112,7 +123,7 @@ export default function SubscriptionTracker() {
 
       {/* 2. الرسائل (WhatsApp/SMS) - حالة القفل للباقة المجانية */}
       <div className={`relative p-4 rounded-xl border border-white/5 ${isFreePlan ? 'bg-white/[0.02]' : 'bg-transparent'}`}>
-        
+
         {/* طبقة التعتيم (Blur Overlay) للباقة المجانية */}
         {isFreePlan && (
           <div className="absolute inset-0 backdrop-blur-[2px] bg-[#0A0A0C]/40 z-20 flex flex-col items-center justify-center rounded-xl transition-all group-hover:backdrop-blur-[1px]">

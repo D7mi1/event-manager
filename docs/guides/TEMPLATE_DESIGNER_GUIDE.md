@@ -56,7 +56,7 @@
 // - حفظ التصاميم
 ```
 
-#### `app/hooks/useTemplateDesigner.ts`
+#### `lib/hooks/useTemplateDesigner.ts`
 ```typescript
 // Hook مخصص لإدارة حالة المحرر
 // يوفر:
@@ -105,7 +105,7 @@
 
 ### Utils
 
-#### `app/utils/templateSchema.ts`
+#### `lib/schemas/template.ts`
 ```typescript
 // Zod schemas للتحقق من البيانات
 // - designElementSchema
@@ -170,7 +170,7 @@ https://supabase.com/dashboard/project/[YOUR_PROJECT]/sql
 ```typescript
 'use client'
 
-import useTemplateDesigner from '@/app/hooks/useTemplateDesigner'
+import useTemplateDesigner from '@/lib/hooks/useTemplateDesigner'
 
 export function MyDesigner({ eventId }: { eventId: string }) {
   const {

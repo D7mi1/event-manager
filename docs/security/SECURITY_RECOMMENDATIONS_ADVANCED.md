@@ -86,7 +86,7 @@ return { success: false, error: 'Database error: column not found' };  // ❌ ك
 
 ### ✅ الحل:
 ```typescript
-// app/utils/error-messages.ts
+// lib/utils/error-messages.ts
 export const ERROR_MESSAGES = {
   // Generic messages للـ client
   INVALID_CREDENTIALS: 'بيانات الدخول غير صحيحة',
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
 
 ```typescript
 // lib/audit-logger.ts
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 export interface AuditLog {
   action: 'login' | 'create_event' | 'verify_pin' | 'export_data' | 'delete_event';
@@ -317,7 +317,7 @@ CREATE INDEX audit_logs_action_idx ON audit_logs(action);
 ### ✅ الحل:
 
 ```typescript
-// app/utils/validation-advanced.ts
+// lib/utils/validation-advanced.ts
 import { z } from 'zod';
 
 // Schemas متقدمة مع رسائل خطأ مخصصة

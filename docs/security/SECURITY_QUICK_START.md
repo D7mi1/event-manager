@@ -61,7 +61,7 @@ export default nextConfig;
 
 ## ✅ خطوة 2: إنشاء Error Messages الآمنة (10 دقائق)
 
-### ملف جديد: `app/utils/error-messages.ts`
+### ملف جديد: `lib/utils/error-messages.ts`
 
 ```typescript
 export const ERROR_MESSAGES = {
@@ -83,7 +83,7 @@ export const ERROR_MESSAGES = {
 
 ```typescript
 // أضف في الأعلى
-import { ERROR_MESSAGES } from '@/app/utils/error-messages';
+import { ERROR_MESSAGES } from '@/lib/utils/error-messages';
 
 // عدّل الدالة
 export async function verifyEventPin(eventId: string, inputPin: string) {

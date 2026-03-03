@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import {
   Plus, Calendar, Users, BarChart3, Clock,
   Settings, Zap, Bell, CheckCircle2, Crown,
@@ -61,9 +61,9 @@ export default function Dashboard() {
       if (profile) {
         setUserName(profile.full_name);
         if (profile.interest === 'business') setThemeColor('#3B82F6');
-        // جلب الخطة الفعلية
-        if (profile.plan_id && profile.plan_id in PLANS) {
-          setCurrentPlanId(profile.plan_id as PlanId);
+        // جلب الخطة الفعلية (العمود الفعلي في DB هو package_id)
+        if (profile.package_id && profile.package_id in PLANS) {
+          setCurrentPlanId(profile.package_id as PlanId);
         }
         if (profile.subscription_status) {
           setSubscriptionStatus(profile.subscription_status);

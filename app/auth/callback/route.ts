@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/app/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * Auth Callback Handler
@@ -14,8 +14,13 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
 
   const code = searchParams.get('code');
-  const next = searchParams.get('next') || '/dashboard';
+  const nextParam = searchParams.get('next') || '/dashboard';
   const type = searchParams.get('type'); // recovery, signup, etc.
+
+  // ✅ حماية من Open Redirect - التأكد أن next يبدأ بـ / وليس //
+  const next = (nextParam.startsWith('/') && !nextParam.startsWith('//'))
+    ? nextParam
+    : '/dashboard';
 
   if (code) {
     const supabase = await createClient();

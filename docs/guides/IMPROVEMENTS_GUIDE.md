@@ -23,9 +23,9 @@
 
 | الملف | التغييرات |
 |------|-----------|
-| `app/utils/api-error-handler.ts` | إعادة كتابة شاملة مع تصنيف الأخطاء |
-| `app/actions/__tests__/api-error-handler.test.ts` | إصلاح أخطاء NODE_ENV و async/await |
-| `app/utils/validation.ts` | إضافة 8 دوال validation جديدة |
+| `lib/utils/api-error-handler.ts` | إعادة كتابة شاملة مع تصنيف الأخطاء |
+| `lib/utils/__tests__/api-error-handler.test.ts` | إصلاح أخطاء NODE_ENV و async/await |
+| `lib/utils/validation.ts` | إضافة 8 دوال validation جديدة |
 
 ### 📄 ملفات جديدة:
 
@@ -98,7 +98,7 @@ SELECT, INSERT, UPDATE, DELETE
 ### استخدام Error Handler
 
 ```typescript
-import { handleApiError, validationError } from '@/app/utils/api-error-handler';
+import { handleApiError, validationError } from '@/lib/utils/api-error-handler';
 
 try {
   // كود قد يرمي خطأ
@@ -119,7 +119,7 @@ if (!data) {
 ### استخدام Validation
 
 ```typescript
-import { validateEventData } from '@/app/utils/validation';
+import { validateEventData } from '@/lib/utils/validation';
 
 // التحقق من بيانات الفعالية
 const errors = validateEventData({

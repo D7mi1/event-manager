@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, use, useState } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { EventAnalytics, buildAnalyticsData, type AnalyticsData } from '@/components/analytics/EventAnalytics';
 import { Loader2, ArrowLeft, Download, Award, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
@@ -58,7 +58,7 @@ export default function AnalyticsPage({ params }: PageProps) {
     try {
       await exportGuestsToExcel({
         eventName: eventDetails?.name || 'فعالية',
-        eventDate: eventDetails?.event_date
+        eventDate: eventDetails?.date
           ? new Date(eventDetails.event_date).toLocaleDateString('ar-SA')
           : undefined,
         guests: attendees,
@@ -83,7 +83,7 @@ export default function AnalyticsPage({ params }: PageProps) {
         await generateCertificatePDF({
           attendeeName: guest.name,
           eventName: eventDetails?.name || '',
-          eventDate: eventDetails?.event_date
+          eventDate: eventDetails?.date
             ? new Date(eventDetails.event_date).toLocaleDateString('ar-SA', { dateStyle: 'long' })
             : '',
           eventLocation: eventDetails?.location_name || '',

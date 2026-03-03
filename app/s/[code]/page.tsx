@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
-import { createClient } from '@/app/utils/supabase/server'; // 👈 تأكد من مسار الكلاينت عندك
+import { createClient } from '@/lib/supabase/server'; // 👈 تأكد من مسار الكلاينت عندك
 
 export default async function ShortLinkPage({ params }: { params: Promise<{ code: string }> }) {
     const { code } = await params;

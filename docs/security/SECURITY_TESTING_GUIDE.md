@@ -26,9 +26,9 @@ curl -X GET "http://localhost:3000/api/events?id=1' AND SLEEP(5)--"
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/security-sql-injection.test.ts
+// lib/__tests__/security-sql-injection.test.ts
 import { describe, it, expect } from '@jest/globals';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 describe('SQL Injection Prevention', () => {
   it('should prevent basic SQL injection in event queries', async () => {
@@ -96,7 +96,7 @@ describe('SQL Injection Prevention', () => {
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/security-xss.test.ts
+// lib/__tests__/security-xss.test.ts
 import { describe, it, expect } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
@@ -164,7 +164,7 @@ describe('XSS Prevention', () => {
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/security-csrf.test.ts
+// lib/__tests__/security-csrf.test.ts
 import { describe, it, expect } from '@jest/globals';
 
 describe('CSRF Protection', () => {
@@ -216,7 +216,7 @@ describe('CSRF Protection', () => {
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/security-secrets.test.ts
+// lib/__tests__/security-secrets.test.ts
 import { describe, it, expect } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
@@ -224,8 +224,8 @@ import path from 'path';
 describe('Secrets Management', () => {
   it('should not have hardcoded API keys in source files', () => {
     const filesToCheck = [
-      'app/utils/supabase/client.ts',
-      'app/utils/api-error-handler.ts',
+      'lib/supabase/client.ts',
+      'lib/utils/api-error-handler.ts',
       'app/actions/verifyPin.ts',
     ];
 
@@ -274,7 +274,7 @@ describe('Secrets Management', () => {
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/validation-security.test.ts
+// lib/__tests__/validation-security.test.ts
 import { describe, it, expect } from '@jest/globals';
 import {
   validateEmail,
@@ -282,7 +282,7 @@ import {
   validatePin,
   validateEventTitle,
   cleanPhoneNumber,
-} from '@/app/utils/validation';
+} from '@/lib/utils/validation';
 
 describe('Input Validation Security', () => {
   describe('Email Validation', () => {
@@ -401,7 +401,7 @@ describe('Input Validation Security', () => {
 ### ✅ اختبارات القبول:
 
 ```typescript
-// app/utils/__tests__/security-auth.test.ts
+// lib/__tests__/security-auth.test.ts
 import { describe, it, expect } from '@jest/globals';
 import bcrypt from 'bcryptjs';
 
@@ -463,7 +463,7 @@ describe('Authentication Security', () => {
 ### ⚠️ Security Headers Validation:
 
 ```typescript
-// app/utils/__tests__/security-headers.test.ts
+// lib/__tests__/security-headers.test.ts
 import { describe, it, expect } from '@jest/globals';
 
 describe('Security Headers', () => {

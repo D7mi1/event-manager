@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, use } from 'react'
-import { supabase } from '@/app/utils/supabase/client'
+import { supabase } from '@/lib/supabase/client'
 import { Search, CheckCircle, Clock, Plus, Loader2, X, Shield, Trash2, Edit, Save, UserPlus } from 'lucide-react'
 import { Attendee } from '@/types'
 import { toast } from 'sonner'
@@ -27,7 +27,7 @@ export default function StaffPage({ params }: PageProps) {
     // const supabase = createClient() // Removed in favor of imported instance
 
     const fetchData = async () => {
-        const { data: eventData } = await supabase.from('events').select('title').eq('id', eventId).single()
+        const { data: eventData } = await supabase.from('events').select('name').eq('id', eventId).single()
         setEvent(eventData)
 
         const { data: attendeesData } = await supabase
@@ -44,10 +44,10 @@ export default function StaffPage({ params }: PageProps) {
 
     const toggleCheckIn = async (attendee: Attendee) => {
         const newStatus = attendee.status === 'confirmed' ? 'pending' : 'confirmed'
-        const checkInTime = newStatus === 'confirmed' ? new Date().toISOString() : null
+        const attendedAt = newStatus === 'confirmed' ? new Date().toISOString() : null
 
-        setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: newStatus, check_in_time: checkInTime } : a))
-        await supabase.from('attendees').update({ status: newStatus, check_in_time: checkInTime }).eq('id', attendee.id)
+        setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: newStatus, check_in_time: attendedAt } : a))
+        await supabase.from('attendees').update({ status: newStatus, attended_at: attendedAt }).eq('id', attendee.id)
     }
 
     const handleDelete = async (id: string) => {
@@ -68,7 +68,7 @@ export default function StaffPage({ params }: PageProps) {
             phone: phone,
             email: `${phone}@manual.com`,
             status: 'confirmed',
-            check_in_time: new Date().toISOString()
+            attended_at: new Date().toISOString()
         }]).select().single()
 
         if (!error && data) {
@@ -118,7 +118,7 @@ export default function StaffPage({ params }: PageProps) {
             {/* الهيدر */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-4 sticky top-4 z-10 flex justify-between items-center">
                 <div>
-                    <h1 className="font-bold text-slate-800 text-lg truncate max-w-[180px]">{event?.title}</h1>
+                    <h1 className="font-bold text-slate-800 text-lg truncate max-w-[180px]">{event?.name}</h1>
                     <p className="text-xs text-orange-500 flex items-center gap-1 font-bold"><Shield size={12} /> مشرف ميداني</p>
                 </div>
                 <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
@@ -158,9 +158,9 @@ export default function StaffPage({ params }: PageProps) {
                                     </button>
                                 </div>
 
-                                {att.check_in_time && att.status === 'confirmed' && (
+                                {att.attended_at && att.status === 'confirmed' && (
                                     <p className="text-[10px] text-green-600 flex items-center gap-1 mt-2 font-medium">
-                                        <Clock size={10} /> دخل: {new Date(att.check_in_time).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                                        <Clock size={10} /> دخل: {new Date(att.attended_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 )}
                             </div>

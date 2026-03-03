@@ -247,8 +247,8 @@ Production Ready: ✅
 └── SECURITY_DOCUMENTATION_SUMMARY.md  ✅ جديد
 
 ملفات المشروع:
-├── app/utils/api-error-handler.ts
-├── app/utils/validation.ts
+├── lib/utils/api-error-handler.ts
+├── lib/utils/validation.ts
 ├── app/actions/verifyPin.ts
 └── next.config.ts
 ```

@@ -100,7 +100,7 @@ CREATE POLICY "Users see their own event templates"
   FOR SELECT
   USING (
     event_id IN (
-      SELECT id FROM events WHERE owner_id = auth.uid()
+      SELECT id FROM events WHERE user_id = auth.uid()
     )
   );
 
@@ -110,7 +110,7 @@ CREATE POLICY "Users update own templates"
   FOR UPDATE
   USING (
     event_id IN (
-      SELECT id FROM events WHERE owner_id = auth.uid()
+      SELECT id FROM events WHERE user_id = auth.uid()
     )
   );
 
@@ -120,7 +120,7 @@ CREATE POLICY "Users delete own templates"
   FOR DELETE
   USING (
     event_id IN (
-      SELECT id FROM events WHERE owner_id = auth.uid()
+      SELECT id FROM events WHERE user_id = auth.uid()
     )
   );
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import NextImage from 'next/image';
 import { Send, Briefcase, Loader2, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

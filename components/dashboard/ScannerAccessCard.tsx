@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Settings, Lock, Copy, Check, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queries/query-keys';
@@ -36,7 +36,7 @@ export default function ScannerAccessCard({ eventId, currentPin }: { eventId: st
     try {
       const { error } = await supabase
         .from('events')
-        .update({ pin: newPin })
+        .update({ pin_hash: newPin })
         .eq('id', eventId.trim());
 
       if (error) throw error;

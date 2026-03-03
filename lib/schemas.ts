@@ -213,7 +213,7 @@ export const attendeeSchema = z.object({
   phone: z.string().optional(),
   status: z.enum(['pending', 'confirmed', 'declined']),
   created_at: z.string().datetime(),
-  check_in_time: z.string().datetime().nullable().optional(),
+  attended_at: z.string().datetime().nullable().optional(),
   attended: z.boolean().optional(),
   regret_reason: z.string().optional(),
 });
@@ -239,7 +239,7 @@ export const memorySchema = z.object({
     .min(1, 'الذكرى مطلوبة')
     .max(500, 'الذكرى طويلة جداً (الحد الأقصى 500 حرف)'),
   eventId: z.string().uuid('معرف الفعالية غير صحيح'),
-  attendeeId: z.string().uuid('معرف الضيف غير صحيح'),
+  guestId: z.string().uuid('معرف الضيف غير صحيح'),
 });
 
 export type MemoryData = z.infer<typeof memorySchema>;

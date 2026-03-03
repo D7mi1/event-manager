@@ -91,7 +91,7 @@ npm run lint
 
 **في API Route:**
 ```typescript
-import { handleApiError, validationError } from '@/app/utils/api-error-handler';
+import { handleApiError, validationError } from '@/lib/utils/api-error-handler';
 
 export async function POST(request: Request) {
   try {
@@ -113,7 +113,7 @@ if (!user) {
 
 **في أي مكان:**
 ```typescript
-import { validateEventData } from '@/app/utils/validation';
+import { validateEventData } from '@/lib/utils/validation';
 
 const errors = validateEventData({
   title: input.title,
@@ -157,10 +157,10 @@ if (Object.keys(errors).length > 0) {
 
 ### 🔧 للكود المصدري
 ```
-1. app/utils/api-error-handler.ts       ← معالج الأخطاء المحسّن
-2. app/utils/validation.ts              ← الـ Validation الجديد
+1. lib/utils/api-error-handler.ts       ← معالج الأخطاء المحسّن
+2. lib/utils/validation.ts              ← الـ Validation الجديد
 3. app/actions/verifyPin.ts             ← تشفير PIN (موجود)
-4. app/actions/__tests__/               ← الاختبارات المصححة
+4. lib/utils/__tests__/               ← الاختبارات المصححة
 ```
 
 ---

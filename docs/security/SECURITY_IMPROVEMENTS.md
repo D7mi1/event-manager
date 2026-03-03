@@ -80,7 +80,7 @@ export function handleApiError(error: unknown, context?: string) {
 }
 ```
 
-**ملف مُحدّث:** [app/utils/api-error-handler.ts](app/utils/api-error-handler.ts)
+**ملف مُحدّث:** [lib/utils/api-error-handler.ts](lib/utils/api-error-handler.ts)
 
 **دوال مساعدة جديدة:**
 - `notFoundError()` - 404
@@ -117,7 +117,7 @@ validateEventData(eventData) // يتحقق من جميع الحقول
 - validateEventDescription() - وصف الفعالية
 ```
 
-**ملف مُحدّث:** [app/utils/validation.ts](app/utils/validation.ts)
+**ملف مُحدّث:** [lib/utils/validation.ts](lib/utils/validation.ts)
 
 ---
 

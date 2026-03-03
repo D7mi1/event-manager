@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { useEventStore } from '@/store/eventStore';
-import { generateWhatsAppLink } from '@/app/utils/whatsappHelper';
+import { useEventStore } from '@/lib/stores/eventStore';
+import { generateWhatsAppLink } from '@/lib/services/whatsapp';
 import { Search, Trash2, CheckSquare, Square, MessageCircle } from 'lucide-react';
 // 👇 1. استيراد مكون المشاركة الذكي
-import ShareInvite from '@/components/ShareInvite';
+import ShareInvite from '@/components/events/ShareInvite';
 
 export function AttendeesTable() {
    const { attendees, searchTerm, setSearchTerm, filterType, setFilterType, deleteGuest, toggleAttendance, eventDetails, toggleQueueModal } = useEventStore();

@@ -13,6 +13,7 @@ import {
   Users,
   Package,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import {
   getAllPlans,
@@ -20,8 +21,12 @@ import {
   getAllAddons,
   getYearlySavings,
   type BillingInterval,
+  type EventPackageId,
 } from '@/lib/billing/plans';
-import Navbar from '@/components/Navbar';
+import { createEventPackageCheckout } from '@/app/actions/billingActions';
+import { toast } from 'sonner';
+import Navbar from '@/components/layout/Navbar';
+import { useSearchParams } from 'next/navigation';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -64,12 +69,31 @@ const faqs = [
 // ---------------------------------------------------------------------------
 
 export default function PricingPage() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as PricingTab) || 'single_event';
   const [interval, setInterval] = useState<BillingInterval>('monthly');
-  const [activeTab, setActiveTab] = useState<PricingTab>('subscriptions');
+  const [activeTab, setActiveTab] = useState<PricingTab>(initialTab);
+  const [purchaseLoading, setPurchaseLoading] = useState<string | null>(null);
   const plans = getAllPlans();
   const eventPackages = getAllEventPackages();
   const addons = getAllAddons();
   const isYearly = interval === 'yearly';
+
+  const handleBuyPackage = async (packageId: EventPackageId) => {
+    setPurchaseLoading(packageId);
+    try {
+      const result = await createEventPackageCheckout(packageId);
+      if (result.success) {
+        window.location.href = result.data.checkoutUrl;
+      } else {
+        toast.error(result.error);
+      }
+    } catch {
+      toast.error('يرجى تسجيل الدخول أولاً');
+    } finally {
+      setPurchaseLoading(null);
+    }
+  };
 
   return (
     <main
@@ -332,16 +356,19 @@ export default function PricingPage() {
                         ))}
                       </ul>
 
-                      <Link
-                        href="/dashboard"
-                        className={`block w-full py-4 rounded-2xl text-center font-bold transition-all duration-300 ${
+                      <button
+                        onClick={() => handleBuyPackage(pkg.id as EventPackageId)}
+                        disabled={purchaseLoading === pkg.id}
+                        className={`block w-full py-4 rounded-2xl text-center font-bold transition-all duration-300 disabled:opacity-50 ${
                           isMiddle
                             ? 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/30 font-black text-lg'
                             : 'border border-white/10 text-white/60 hover:bg-white/5 hover:text-white'
                         }`}
                       >
-                        اشتر الآن
-                      </Link>
+                        {purchaseLoading === pkg.id ? (
+                          <span className="flex items-center justify-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> جاري التحويل...</span>
+                        ) : 'اشتر الآن'}
+                      </button>
                     </div>
                   </div>
                 );

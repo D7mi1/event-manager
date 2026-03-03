@@ -1,4 +1,4 @@
-import { validateEmail, validatePhone, validateRequired, cleanPhoneNumber, formatPhoneNumber } from './validation';
+import { validateEmail, validatePhone, validateRequired, cleanPhoneNumber, formatPhoneNumber } from '@/lib/utils/validation';
 
 describe('Validation Functions', () => {
   

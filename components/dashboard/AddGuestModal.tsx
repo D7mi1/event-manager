@@ -1,7 +1,7 @@
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEventStore } from '@/store/eventStore';
+import { useEventStore } from '@/lib/stores/eventStore';
 import { Plus, X, Loader2 } from 'lucide-react';
 import { AddGuestFormSchema, type AddGuestFormInput } from '@/lib/schemas';
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useState } from 'react'
-import TemplateDesigner from '@/components/TemplateDesigner'
+import TemplateDesigner from '@/components/events/TemplateDesigner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface PageProps {

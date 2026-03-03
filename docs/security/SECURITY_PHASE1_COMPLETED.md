@@ -32,7 +32,7 @@ async headers() {
 ---
 
 ### ✅ الخطوة 2: Error Messages الآمنة
-**ملف جديد:** `app/utils/error-messages.ts`
+**ملف جديد:** `lib/utils/error-messages.ts`
 
 ```typescript
 // تم الإنشاء:
@@ -56,7 +56,7 @@ export function getSafeErrorMessage(error, fallback) {
 ### ✅ الخطوة 3: تحديث verifyPin.ts
 ```typescript
 // تم التحديث:
-import { ERROR_MESSAGES, getSafeErrorMessage } from '@/app/utils/error-messages';
+import { ERROR_MESSAGES, getSafeErrorMessage } from '@/lib/utils/error-messages';
 
 export async function verifyEventPin(eventId: string, inputPin: string) {
   // استخدام الرسائل الآمنة
@@ -129,7 +129,7 @@ validateEnvironment();
 ## ✨ الملفات المُنشأة
 
 ```
-✅ app/utils/error-messages.ts        (37 سطر)
+✅ lib/utils/error-messages.ts        (37 سطر)
 ✅ lib/env-validation.ts               (63 سطر)
 ✅ next.config.ts                      (تعديل)
 ✅ app/layout.tsx                      (تعديل)

@@ -1,10 +1,10 @@
 'use client';
 
-import Navbar from '@/components/Navbar';
-import HeroSection from '@/components/HeroSection';
-import FeatureSlider from '@/components/FeatureSlider';
-import StickyCTA from '@/components/StickyCTA';
-import { ArrowUpLeft, Calendar, Tag } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import HeroSection from '@/components/marketing/HeroSection';
+import FeatureSlider from '@/components/marketing/FeatureSlider';
+import StickyCTA from '@/components/marketing/StickyCTA';
+import { ArrowUpLeft, Calendar, Tag, Heart, QrCode, Send, ArrowLeft } from 'lucide-react';
 
 export default function Home() {
 
@@ -93,6 +93,54 @@ export default function Home() {
         </div>
 
         <FeatureSlider />
+
+        {/* قسم الزفاف الذهبي */}
+        <section className="py-20 px-6 relative overflow-hidden">
+          {/* الضوء الذهبي الخلفي */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-10 pointer-events-none bg-[#C19D65]" aria-hidden="true"></div>
+
+          <div className="max-w-5xl mx-auto relative">
+            <div className="bg-gradient-to-l from-[#C19D65]/10 to-transparent border border-[#C19D65]/20 rounded-[2rem] p-10 md:p-14">
+              <div className="flex flex-col md:flex-row items-center gap-10">
+                <div className="flex-1 text-center md:text-right">
+                  <div className="inline-flex items-center gap-2 bg-[#C19D65]/10 text-[#C19D65] text-xs font-bold px-4 py-2 rounded-full mb-6">
+                    <Heart className="w-4 h-4" />
+                    حفلات الزفاف
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                    نظّم حفل <span className="text-[#C19D65]">زفافك</span> بكل سهولة
+                  </h2>
+                  <p className="text-white/50 text-sm leading-relaxed mb-6 max-w-lg">
+                    دعوات رقمية أنيقة، تسجيل حضور بـ QR، رسائل واتساب تلقائية، وخريطة مقاعد — كل ما تحتاجه لليلة العمر.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                    <a href="/wedding" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-sm bg-[#C19D65] text-black hover:bg-[#D4AF7A] transition-all duration-300">
+                      تصفح باقات الزفاف
+                      <ArrowLeft className="w-4 h-4" />
+                    </a>
+                    <a href="/pricing?tab=single_event" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-sm border border-[#C19D65]/30 text-[#C19D65] hover:bg-[#C19D65]/5 transition-all duration-300">
+                      الأسعار تبدأ من 149 ر.س
+                    </a>
+                  </div>
+                </div>
+                {/* أيقونات المميزات */}
+                <div className="grid grid-cols-2 gap-4 shrink-0">
+                  {[
+                    { icon: Heart, label: 'دعوات أنيقة' },
+                    { icon: QrCode, label: 'مسح QR ذكي' },
+                    { icon: Send, label: 'رسائل واتساب' },
+                    { icon: Calendar, label: 'تنظيم شامل' },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white/[0.03] border border-white/5 rounded-2xl p-5 text-center hover:border-[#C19D65]/20 transition-colors">
+                      <item.icon className="w-6 h-6 text-[#C19D65] mx-auto mb-2" />
+                      <span className="text-white/60 text-xs font-bold">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* قسم كيف يعمل */}
         <section className="py-24 px-6 relative">

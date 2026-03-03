@@ -275,7 +275,15 @@ export async function verifyWebhookSignature(
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    return expectedSignature === signature;
+    // ✅ مقارنة آمنة ضد هجمات التوقيت (timing-safe comparison)
+    if (expectedSignature.length !== signature.length) return false;
+    const a = encoder.encode(expectedSignature);
+    const b = encoder.encode(signature);
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result |= a[i] ^ b[i];
+    }
+    return result === 0;
   } catch {
     return false;
   }

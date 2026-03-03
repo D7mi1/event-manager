@@ -280,7 +280,7 @@ export async function GET() {
 }
 
 // app/api/monitoring/audit-logs/route.ts
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

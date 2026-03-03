@@ -1,6 +1,6 @@
 'use client';
 
-import { useToasts, removeToast, ToastType } from '@/app/utils/toast-store';
+import { useToasts, removeToast, ToastType } from '@/lib/stores/toast-store';
 import { X, CheckCircle2, AlertCircle, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

@@ -13,6 +13,16 @@ export default function HeroSection() {
       <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-white/40 text-lg mt-6 max-w-2xl">
         من حفلات الزفاف والتخرّج إلى المؤتمرات والمعارض — نظّم، أرسل الدعوات، وتابع الحضور بتقنية QR ذكية
       </motion.p>
+
+      {/* أزرار CTA */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-col sm:flex-row gap-4 mt-10">
+        <a href="/wedding" className="px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 bg-gradient-to-l from-[#C19D65] to-[#D4AF7A] text-black hover:shadow-[0_0_30px_rgba(193,157,101,0.3)]">
+          نظّم حفل زفافك ✨
+        </a>
+        <a href="/login" className="px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.3)]">
+          ابدأ مجاناً
+        </a>
+      </motion.div>
     </section>
   );
 }

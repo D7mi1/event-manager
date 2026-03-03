@@ -31,7 +31,7 @@
 
 ```
 الملفات المُنشأة:
-├── app/utils/error-messages.ts      (38 سطر)
+├── lib/utils/error-messages.ts      (38 سطر)
 ├── lib/env-validation.ts            (64 سطر)
 └── تحديثات:
     ├── next.config.ts               (+ Security Headers)
@@ -382,7 +382,7 @@ Testing:
 
 ### المرحلة 1:
 ```
-app/utils/error-messages.ts
+lib/utils/error-messages.ts
 lib/env-validation.ts
 SECURITY_PHASE1_COMPLETED.md
 next.config.ts (modified)

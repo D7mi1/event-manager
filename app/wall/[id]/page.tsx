@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, use } from 'react';
-import { supabase } from '@/app/utils/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Heart } from 'lucide-react';
 
 export default function MemoryWall({ params }: { params: Promise<{ id: string }> }) {
@@ -25,14 +25,14 @@ export default function MemoryWall({ params }: { params: Promise<{ id: string }>
   const fetchMemories = async () => {
     const { data } = await supabase
       .from('memories')
-      .select('*, attendee:attendees(name, category)')
+      .select('*, attendee:attendees!guest_id(name)')
       .eq('event_id', id)
       .order('created_at', { ascending: false });
     if (data) setMemories(data);
   };
 
   const fetchNewMemory = async (memoryId: string) => {
-    const { data } = await supabase.from('memories').select('*, attendee:attendees(name, category)').eq('id', memoryId).single();
+    const { data } = await supabase.from('memories').select('*, attendee:attendees!guest_id(name)').eq('id', memoryId).single();
     if (data) setMemories(prev => [data, ...prev]);
   };
 
@@ -54,7 +54,7 @@ export default function MemoryWall({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div>
                    <h4 className="font-bold text-sm">{mem.attendee?.name}</h4>
-                   <span className="text-[10px] text-[#C19D65] uppercase tracking-widest">{mem.attendee?.category}</span>
+                   <span className="text-[10px] text-[#C19D65] uppercase tracking-widest">ضيف</span>
                 </div>
                 <Heart size={16} className="mr-auto text-red-500 fill-red-500 animate-pulse"/>
              </div>

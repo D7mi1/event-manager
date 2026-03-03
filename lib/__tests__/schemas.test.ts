@@ -10,7 +10,7 @@ import {
   registrationSchema,
   memorySchema,
   validateData,
-} from './schemas';
+} from '@/lib/schemas';
 
 describe('Zod Schemas', () => {
   describe('phoneSchema', () => {
@@ -104,7 +104,7 @@ describe('Zod Schemas', () => {
       const validData = {
         message: 'ذكرى جميلة من الحفل',
         eventId: '550e8400-e29b-41d4-a716-446655440000',
-        attendeeId: '550e8400-e29b-41d4-a716-446655440001',
+        guestId: '550e8400-e29b-41d4-a716-446655440001',
       };
       expect(memorySchema.safeParse(validData).success).toBe(true);
     });
@@ -113,7 +113,7 @@ describe('Zod Schemas', () => {
       const invalidData = {
         message: 'a'.repeat(501),
         eventId: '550e8400-e29b-41d4-a716-446655440000',
-        attendeeId: '550e8400-e29b-41d4-a716-446655440001',
+        guestId: '550e8400-e29b-41d4-a716-446655440001',
       };
       expect(memorySchema.safeParse(invalidData).success).toBe(false);
     });
@@ -122,7 +122,7 @@ describe('Zod Schemas', () => {
       const invalidData = {
         message: '',
         eventId: '550e8400-e29b-41d4-a716-446655440000',
-        attendeeId: '550e8400-e29b-41d4-a716-446655440001',
+        guestId: '550e8400-e29b-41d4-a716-446655440001',
       };
       expect(memorySchema.safeParse(invalidData).success).toBe(false);
     });

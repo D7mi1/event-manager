@@ -29,9 +29,10 @@ export default function Navbar() {
   }, [mobileMenuOpen]);
 
   const navLinks = [
-    { href: '/pricing', label: 'الأسعار' },
-    { href: '/about', label: 'من نحن' },
-    { href: '/contact', label: 'تواصل معنا' },
+    { href: '/wedding', label: 'حفلات الزفاف', highlight: true },
+    { href: '/pricing', label: 'الأسعار', highlight: false },
+    { href: '/about', label: 'من نحن', highlight: false },
+    { href: '/contact', label: 'تواصل معنا', highlight: false },
   ];
 
   return (
@@ -62,8 +63,8 @@ export default function Navbar() {
                 href={link.href}
                 className={`text-sm font-bold transition-colors ${
                   pathname === link.href
-                    ? 'text-blue-400'
-                    : 'text-gray-400 hover:text-white'
+                    ? link.highlight ? 'text-[#C19D65]' : 'text-blue-400'
+                    : link.highlight ? 'text-[#C19D65]/70 hover:text-[#C19D65]' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 {link.label}
@@ -123,8 +124,8 @@ export default function Navbar() {
               role="menuitem"
               className={`block w-full py-4 transition-colors text-sm font-bold border-b border-white/5 ${
                 pathname === link.href
-                  ? 'text-blue-400'
-                  : 'text-white/60 hover:text-white'
+                  ? link.highlight ? 'text-[#C19D65]' : 'text-blue-400'
+                  : link.highlight ? 'text-[#C19D65]/70 hover:text-[#C19D65]' : 'text-white/60 hover:text-white'
               }`}
             >
               {link.label}
