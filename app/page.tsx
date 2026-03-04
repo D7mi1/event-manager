@@ -1,39 +1,17 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import HeroSection from '@/components/marketing/HeroSection';
 import FeatureSlider from '@/components/marketing/FeatureSlider';
 import StickyCTA from '@/components/marketing/StickyCTA';
 import { ArrowUpLeft, Calendar, Tag, Heart, QrCode, Send, ArrowLeft } from 'lucide-react';
+import { blogPosts as allBlogPosts } from './blog/posts';
 
 export default function Home() {
 
-  const blogPosts = [
-    {
-      id: 1,
-      title: "وداعاً للدعوات الورقية: لماذا الباركود الديناميكي هو المستقبل؟",
-      excerpt: "اكتشف كيف يساهم التحول الرقمي في تنظيم حفلات الزفاف والمؤتمرات بسلاسة ودون طوابير.",
-      category: "تقنية الفعاليات",
-      date: "8 يناير 2025",
-      image: "bg-gradient-to-br from-purple-900 to-slate-900"
-    },
-    {
-      id: 2,
-      title: "5 نصائح لتنظيم مناسبة لا تُنسى: من الفكرة إلى التنفيذ",
-      excerpt: "دليل شامل لتنظيم الزفاف، حفلات التخرّج، والمؤتمرات بكفاءة وتجربة ضيوف مميزة.",
-      category: "تنظيم",
-      date: "5 يناير 2025",
-      image: "bg-gradient-to-br from-slate-800 to-gray-900"
-    },
-    {
-      id: 3,
-      title: "أمن المعلومات في الفعاليات: حماية بيانات ضيوفك مسؤولية",
-      excerpt: "كيف تضمن منصة مِراس عدم تكرار الدعوات أو دخول غير المدعوين عبر نظام التحقق المشفر.",
-      category: "أمان",
-      date: "2 يناير 2025",
-      image: "bg-gradient-to-br from-blue-900 to-slate-900"
-    }
-  ];
+  const blogPosts = allBlogPosts.slice(0, 3);
 
   return (
     <main className="min-h-screen relative bg-[#0F0F12] overflow-hidden transition-colors duration-1000 selection:bg-blue-500/30 text-right" dir="rtl">
@@ -244,8 +222,17 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {blogPosts.map((post) => (
-                <div key={post.id} className="group bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                  <div className={`h-48 w-full ${post.image} relative overflow-hidden`}>
+                <Link key={post.id} href={`/blog/${post.slug}`} className="group bg-white/[0.02] border border-white/5 hover:border-white/10 rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-2 block">
+                  <div className="h-48 w-full relative overflow-hidden bg-gradient-to-br from-slate-800 to-gray-900">
+                    {post.image.startsWith('http') ? (
+                      <Image
+                        src={post.image}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                    ) : null}
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all duration-500"></div>
                   </div>
 
@@ -266,7 +253,7 @@ export default function Home() {
                       اقرأ المزيد <ArrowUpLeft className="mr-2" size={16} aria-hidden="true" />
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

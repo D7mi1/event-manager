@@ -34,8 +34,30 @@ export default async function BlogPostPage({ params }: PageProps) {
 
     const shareUrl = `https://wa.me/?text=${encodeURIComponent(post.title + '\n' + `https://meras.sa/blog/${post.slug}`)}`;
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.excerpt,
+        image: post.image,
+        datePublished: post.date,
+        author: {
+            '@type': 'Organization',
+            name: '\u0645\u0650\u0631\u0627\u0633',
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: '\u0645\u0650\u0631\u0627\u0633',
+        },
+    };
+
     return (
         <main className="min-h-screen bg-[#0A0A0C] text-white font-sans selection:bg-[#C19D65] selection:text-black" dir="rtl">
+
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
 
             {/* --- منطقة الهيرو (صورة الغلاف) --- */}
             <div className="relative h-[50vh] md:h-[60vh] w-full group">
