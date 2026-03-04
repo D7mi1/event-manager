@@ -89,7 +89,7 @@ export default async function EventLayout({ children, params }: LayoutProps) {
         organizer: {
           '@type': 'Organization',
           name: 'مِراس',
-          url: 'https://meras.sa',
+          url: 'https://merasapp.com',
         },
       }
     : null;

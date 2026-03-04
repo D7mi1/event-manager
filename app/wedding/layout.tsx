@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'باقات حفلات الزفاف | مِراس',
     description:
       'نظّم حفل زفافك بكل سهولة — دعوات رقمية، تتبع حضور، تصاميم ذهبية احترافية.',
-    url: 'https://meras.sa/wedding',
+    url: 'https://merasapp.com/wedding',
     locale: 'ar_SA',
     type: 'website',
   },

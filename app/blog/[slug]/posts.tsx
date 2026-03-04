@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
 
   // رابط المشاركة عبر واتساب
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(post.title + '\n' + `https://meras.sa/blog/${post.slug}`)}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(post.title + '\n' + `https://merasapp.com/blog/${post.slug}`)}`;
 
   return (
     <main className="min-h-screen bg-[#0A0A0C] text-white font-sans selection:bg-[#3B82F6] selection:text-black" dir="rtl">

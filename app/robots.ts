@@ -5,7 +5,7 @@ import type { MetadataRoute } from 'next';
  * يسمح بفهرسة الصفحات العامة ويمنع الوصول لصفحات الإدارة
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://meras.sa';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://merasapp.com';
 
   return {
     rules: [

@@ -47,7 +47,7 @@ export function WeddingInvitationEmail({
   hijriDate,
   location = 'قاعة الريتز كارلتون، الرياض',
   locationUrl,
-  ticketLink = 'https://meras.sa/t/example',
+  ticketLink = 'https://merasapp.com/t/example',
   qrData = 'example-qr',
   seatInfo,
   noKids = false,

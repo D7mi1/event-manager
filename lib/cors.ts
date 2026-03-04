@@ -6,13 +6,13 @@
 // قائمة الـ origins المسموحة
 const allowedOrigins = [
   // Production
-  'https://meras.sa',
-  'https://www.meras.sa',
-  'https://admin.meras.sa',
-  'https://app.meras.sa',
+  'https://merasapp.com',
+  'https://www.merasapp.com',
+  'https://admin.merasapp.com',
+  'https://app.merasapp.com',
   
   // Staging
-  'https://staging.meras.sa',
+  'https://staging.merasapp.com',
   
   // Development
   ...(process.env.NODE_ENV === 'development' 

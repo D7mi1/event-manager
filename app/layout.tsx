@@ -23,22 +23,22 @@ export const metadata: Metadata = {
   description: "الخيار الأول للجهات الحكومية والخاصة في السعودية لإدارة الحشود، إصدار البطاقات الرقمية، وتنظيم بروتوكول الاستقبال بتقنيات الذكاء الاصطناعي.",
   keywords: ["تنظيم مؤتمرات", "دخول ذكي", "باركود فعاليات", "نظام RSVP سعودي", "إدارة حشود", "منصة تذاكر", "تنظيم فعاليات السعودية", "تنظيم حفلات زفاف", "دعوات زفاف رقمية", "باركود زواج", "تذاكر زواج إلكترونية", "تنظيم زواج السعودية", "بطاقات دعوة إلكترونية"],
   alternates: {
-    canonical: "https://meras.sa",
+    canonical: "https://merasapp.com",
     languages: {
-      'ar-SA': 'https://meras.sa',
+      'ar-SA': 'https://merasapp.com',
     },
   },
   // Open Graph - للمشاركة في وسائل التواصل
   openGraph: {
     type: 'website',
     locale: 'ar_SA',
-    url: 'https://meras.sa',
+    url: 'https://merasapp.com',
     siteName: 'مِراس',
     title: 'مِراس | نظام إدارة بروتوكول الفعاليات والدخول الذكي',
     description: 'الخيار الأول للجهات الحكومية والخاصة في السعودية لإدارة الحشود، إصدار البطاقات الرقمية، وتنظيم بروتوكول الاستقبال.',
     images: [
       {
-        url: 'https://meras.sa/og-image.png',
+        url: 'https://merasapp.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'منصة مِراس لتنظيم الفعاليات',
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'مِراس | نظام إدارة بروتوكول الفعاليات والدخول الذكي',
     description: 'الخيار الأول للجهات الحكومية والخاصة في السعودية لإدارة الحشود وإصدار البطاقات الرقمية.',
-    images: ['https://meras.sa/og-image.png'],
+    images: ['https://merasapp.com/og-image.png'],
   },
-  metadataBase: new URL('https://meras.sa'),
+  metadataBase: new URL('https://merasapp.com'),
   robots: {
     index: true,
     follow: true,
@@ -72,8 +72,8 @@ const jsonLd = {
     {
       "@type": "Organization",
       "name": "مِراس (Meras)",
-      "url": "https://meras-app.com",
-      "logo": "https://meras-app.com/logo.png",
+      "url": "https://merasapp.com",
+      "logo": "https://merasapp.com/logo.png",
       "description": "منصة سعودية رائدة في تنظيم الفعاليات وإدارة الحضور الرقمي.",
       "address": {
         "@type": "PostalAddress",

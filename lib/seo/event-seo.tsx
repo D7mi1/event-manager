@@ -52,7 +52,7 @@ export function generateEventJsonLd(props: EventSeoProps) {
     locationUrl,
     imageUrl,
     organizerName = 'مِراس',
-    organizerUrl = 'https://meras.sa',
+    organizerUrl = 'https://merasapp.com',
     eventStatus = 'EventScheduled',
     eventAttendanceMode = 'OfflineEventAttendanceMode',
     price,
@@ -80,7 +80,7 @@ export function generateEventJsonLd(props: EventSeoProps) {
       },
       ...(locationUrl ? { sameAs: locationUrl } : {}),
     },
-    image: imageUrl ? [imageUrl] : ['https://meras.sa/og-image.png'],
+    image: imageUrl ? [imageUrl] : ['https://merasapp.com/og-image.png'],
     organizer: {
       '@type': 'Organization',
       name: organizerName,
@@ -97,7 +97,7 @@ export function generateEventJsonLd(props: EventSeoProps) {
       '@type': 'Offer',
       price,
       priceCurrency,
-      url: ticketUrl || 'https://meras.sa/pricing',
+      url: ticketUrl || 'https://merasapp.com/pricing',
       availability: `https://schema.org/${availability}`,
       validFrom: new Date().toISOString(),
     };

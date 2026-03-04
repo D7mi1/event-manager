@@ -157,7 +157,7 @@ export async function sendPushNotification(
     const webPush = await import('web-push');
 
     webPush.setVapidDetails(
-      process.env.VAPID_SUBJECT || 'mailto:hello@meras.sa',
+      process.env.VAPID_SUBJECT || 'mailto:hello@merasapp.com',
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '',
       process.env.VAPID_PRIVATE_KEY || ''
     );

@@ -5,7 +5,7 @@ import type { MetadataRoute } from 'next';
  * تشمل الصفحات الثابتة + صفحات الفعاليات العامة
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://meras.sa';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://merasapp.com';
 
   // الصفحات الثابتة
   const staticPages: MetadataRoute.Sitemap = [

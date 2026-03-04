@@ -90,8 +90,8 @@ export default function ContactPage() {
                 <Mail className="w-5 h-5 text-blue-400" />
               </div>
               <h3 className="font-bold mb-1">البريد الإلكتروني</h3>
-              <a href="mailto:hello@meras.sa" className="text-white/50 text-sm hover:text-blue-400 transition-colors" dir="ltr">
-                hello@meras.sa
+              <a href="mailto:hello@merasapp.com" className="text-white/50 text-sm hover:text-blue-400 transition-colors" dir="ltr">
+                hello@merasapp.com
               </a>
             </div>
 

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      const adminEmail = process.env.CONTACT_FORM_EMAIL || 'hello@meras.sa';
+      const adminEmail = process.env.CONTACT_FORM_EMAIL || 'hello@merasapp.com';
 
       // إيميل للإدارة
       await resend.emails.send({

@@ -32,7 +32,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
     if (!post) notFound();
 
-    const shareUrl = `https://wa.me/?text=${encodeURIComponent(post.title + '\n' + `https://meras.sa/blog/${post.slug}`)}`;
+    const shareUrl = `https://wa.me/?text=${encodeURIComponent(post.title + '\n' + `https://merasapp.com/blog/${post.slug}`)}`;
 
     const jsonLd = {
         '@context': 'https://schema.org',
