@@ -97,6 +97,10 @@ function VerifyContent() {
         type: 'signup'
       });
       if (error) throw error;
+
+      // إرسال إيميل الترحيب (fire-and-forget - لا يمنع الانتقال للداشبورد)
+      fetch('/api/send-welcome-email', { method: 'POST' }).catch(() => {});
+
       router.push('/dashboard'); // نجاح!
     } catch (err: any) {
       setError('الرمز غير صحيح أو انتهت صلاحيته');
@@ -140,6 +144,9 @@ function VerifyContent() {
           <p className="text-white/40 text-sm leading-relaxed">
             أرسلنا رمز تأكيد مؤلف من 6 أرقام إلى <br />
             <span className="text-white font-bold dir-ltr block mt-1">{email}</span>
+          </p>
+          <p className="text-yellow-500/70 text-[11px] mt-3 font-bold bg-yellow-500/5 border border-yellow-500/10 rounded-xl px-4 py-2">
+            لم تجد الرسالة؟ تحقق من مجلد البريد غير المرغوب فيه (Junk / Spam)
           </p>
         </div>
 

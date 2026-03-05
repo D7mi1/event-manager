@@ -22,7 +22,11 @@ import {
   type PolarWebhookPayload,
   type PolarWebhookEventType,
 } from '@/lib/billing/polar';
+import { PLANS } from '@/lib/billing/plans';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+import { subscriptionConfirmationTemplate } from '@/lib/email/templates';
+import { EMAIL_CONFIG } from '@/lib/email/config';
 
 // Supabase Admin Client (يتجاوز RLS)
 function getAdminClient() {
@@ -97,6 +101,35 @@ export async function POST(request: NextRequest) {
         }).eq('id', userId);
 
         console.log(`[Polar Webhook] ${eventType}: User ${userId} → Plan ${planId} (${status})`);
+
+        // إرسال إيميل تأكيد الاشتراك (فقط عند الإنشاء)
+        if (eventType === 'subscription.created' && planId !== 'free') {
+          try {
+            const { data: userData } = await supabase.auth.admin.getUserById(userId);
+            const userEmail = subscriptionData.metadata?.user_email || userData?.user?.email;
+
+            if (userEmail) {
+              const plan = PLANS[planId];
+              const resend = new Resend(process.env.RESEND_API_KEY);
+              await resend.emails.send({
+                from: EMAIL_CONFIG.from,
+                to: userEmail,
+                subject: `تم تفعيل باقة ${plan.nameAr} بنجاح!`,
+                html: subscriptionConfirmationTemplate({
+                  name: userData?.user?.user_metadata?.name || userEmail.split('@')[0],
+                  planName: plan.nameAr,
+                  planFeatures: plan.features,
+                  dashboardUrl: EMAIL_CONFIG.dashboardUrl,
+                  billingUrl: EMAIL_CONFIG.billingUrl,
+                }),
+              });
+              console.log(`[Polar Webhook] Subscription confirmation email sent to ${userEmail}`);
+            }
+          } catch (emailError) {
+            console.error('[Polar Webhook] Failed to send confirmation email:', emailError);
+          }
+        }
+
         break;
       }
 

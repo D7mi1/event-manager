@@ -5,6 +5,7 @@ import { metricsCollector } from '@/lib/metrics';
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors';
 import { emailLimiter, checkRateLimit } from '@/lib/rate-limit';
 import { ticketEmailTemplate } from '@/lib/email/templates';
+import { EMAIL_CONFIG } from '@/lib/email/config';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await resend.emails.send({
-      from: 'Meras <onboarding@resend.dev>',
+      from: EMAIL_CONFIG.from,
       to: [email],
       subject: `تذكرة دخول: ${eventTitle} 🎫`,
       html: htmlContent,

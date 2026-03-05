@@ -432,3 +432,82 @@ export function welcomeEmailTemplate(data: WelcomeEmailData): string {
     preheader: 'مرحباً بك في مِراس! ابدأ بإنشاء فعاليتك الأولى',
   });
 }
+
+// ============================================
+// قالب تأكيد الاشتراك
+// ============================================
+export interface SubscriptionConfirmationData {
+  name: string;
+  planName: string;
+  planFeatures: string[];
+  dashboardUrl: string;
+  billingUrl: string;
+}
+
+export function subscriptionConfirmationTemplate(data: SubscriptionConfirmationData): string {
+  const featuresHtml = data.planFeatures
+    .map(f => `
+      <tr>
+        <td style="padding: 8px 16px; font-size: 14px; color: ${BRAND.text};">
+          <span style="color: ${BRAND.success}; margin-left: 8px;">✓</span> ${f}
+        </td>
+      </tr>`)
+    .join('');
+
+  const content = `
+    <tr>
+      <td class="email-card" style="background: ${BRAND.cardBg}; border-radius: 20px; border: 1px solid ${BRAND.border}; overflow: hidden;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #059669, ${BRAND.success}); padding: 48px 32px; text-align: center; color: white;">
+              <div style="width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 20px; margin: 0 auto 20px; line-height: 72px; font-size: 36px;">🎉</div>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 800;">تم تفعيل اشتراكك!</h1>
+              <p style="margin: 12px 0 0; opacity: 0.9; font-size: 15px;">باقة ${data.planName}</p>
+            </td>
+          </tr>
+          <!-- Content -->
+          <tr>
+            <td class="email-content" style="padding: 32px;">
+              <p class="email-text" style="color: ${BRAND.text}; font-size: 16px; line-height: 1.8; margin: 0 0 24px;">
+                مرحباً <strong>${data.name}</strong>، شكراً لثقتك! تم تفعيل اشتراكك في باقة <strong>${data.planName}</strong> بنجاح.
+              </p>
+
+              <!-- مميزات الباقة -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; margin-bottom: 28px; overflow: hidden;">
+                <tr>
+                  <td style="padding: 16px 16px 8px; font-size: 13px; font-weight: 800; color: ${BRAND.success};">
+                    مميزات باقتك:
+                  </td>
+                </tr>
+                ${featuresHtml}
+                <tr><td style="height: 12px;"></td></tr>
+              </table>
+
+              <!-- الأزرار -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-bottom: 12px;">
+                    <a href="${data.dashboardUrl}" class="email-btn" style="display: inline-block; background: linear-gradient(135deg, #059669, ${BRAND.success}); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 14px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                      ابدأ باستخدام المميزات الجديدة
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <a href="${data.billingUrl}" style="color: ${BRAND.textLight}; font-size: 13px; text-decoration: underline;">
+                      إدارة اشتراكك
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+
+  return emailWrapper(content, {
+    preheader: `تم تفعيل باقة ${data.planName} بنجاح! استمتع بالمميزات الجديدة`,
+  });
+}

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors';
 import { emailLimiter, checkRateLimit } from '@/lib/rate-limit';
+import { EMAIL_CONFIG } from '@/lib/email/config';
 
 function getClientIP(request: NextRequest): string {
   return (
@@ -76,11 +77,11 @@ export async function POST(request: NextRequest) {
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      const adminEmail = process.env.CONTACT_FORM_EMAIL || 'hello@merasapp.com';
+      const adminEmail = EMAIL_CONFIG.adminEmail;
 
       // إيميل للإدارة
       await resend.emails.send({
-        from: 'Meras Contact <onboarding@resend.dev>',
+        from: EMAIL_CONFIG.from,
         to: [adminEmail],
         subject: `[مِراس] ${subjectLabel} - من ${name.trim()}`,
         html: `
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
 
       // إيميل تأكيد للمرسل
       await resend.emails.send({
-        from: 'Meras <onboarding@resend.dev>',
+        from: EMAIL_CONFIG.from,
         to: [email],
         subject: 'شكراً لتواصلك مع مِراس ✉️',
         html: `

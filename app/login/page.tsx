@@ -99,7 +99,13 @@ export default function AuthPage() {
     if (!interest) { setServerError("يرجى اختيار نوع الاهتمام"); return; }
     setServerError(null);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      // Check if email already exists before attempting signup
+      const { data: emailExists } = await supabase.rpc('check_email_exists', { email_input: data.email });
+      if (emailExists) {
+        throw new Error('هذا البريد الإلكتروني مسجل مسبقاً. جرّب تسجيل الدخول بدلاً من ذلك.');
+      }
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -111,8 +117,12 @@ export default function AuthPage() {
         }
       });
       if (signUpError) {
-        if (signUpError.message.includes('User already registered')) throw new Error('هذا البريد الإلكتروني مسجل مسبقاً.');
+        if (signUpError.message.includes('User already registered')) throw new Error('هذا البريد الإلكتروني مسجل مسبقاً. جرّب تسجيل الدخول بدلاً من ذلك.');
         throw signUpError;
+      }
+      // Supabase returns user with empty identities when email already exists (no error thrown)
+      if (signUpData?.user?.identities?.length === 0) {
+        throw new Error('هذا البريد الإلكتروني مسجل مسبقاً. جرّب تسجيل الدخول بدلاً من ذلك.');
       }
       router.push(`/auth/verify?email=${encodeURIComponent(data.email)}&interest=${interest}`);
     } catch (err: any) { setServerError(err.message); }
