@@ -33,6 +33,7 @@ export default function Navbar() {
     { href: '/pricing', label: 'الأسعار', highlight: false },
     { href: '/about', label: 'من نحن', highlight: false },
     { href: '/contact', label: 'تواصل معنا', highlight: false },
+    { href: '/blog', label: 'المدونة', highlight: false },
   ];
 
   return (

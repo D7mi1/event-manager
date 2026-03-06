@@ -5,8 +5,8 @@ import { ArrowUpLeft } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'مدونة مِراس | أحدث التوجهات في تقنية إدارة الفعاليات',
-    description: 'مقالات متخصصة في الدخول الذكي، بروتوكول الفعاليات، وحلول إدارة الحشود وفق رؤية المملكة 2030.',
+    title: 'مدونة مِراس | نصائح وأفكار لتنظيم المناسبات والفعاليات',
+    description: 'مقالات متخصصة في تنظيم حفلات الزفاف، المؤتمرات، والفعاليات. نصائح عملية، تقنيات حديثة، وأفكار ملهمة للمنظمين.',
 };
 
 export default function BlogIndex() {
@@ -26,7 +26,7 @@ export default function BlogIndex() {
                     مدونة <span className="text-[#C19D65]">مِراس</span>
                 </h1>
                 <p className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-                    دليلك المرجعي لأحدث تقنيات إدارة الفعاليات، بروتوكولات الاستقبال الذكي، واتجاهات التحول الرقمي في المملكة.
+                    نصائح وأفكار لتنظيم حفلات الزفاف والتخرّج والمؤتمرات والمعارض. كل ما يحتاجه المنظم السعودي في مكان واحد.
                 </p>
             </div>
 

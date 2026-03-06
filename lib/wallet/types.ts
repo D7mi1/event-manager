@@ -171,7 +171,7 @@ export async function generateGoogleWalletUrl(data: WalletPassData): Promise<str
     aud: 'google',
     typ: 'savetowallet',
     iat: Math.floor(Date.now() / 1000),
-    origins: [process.env.NEXT_PUBLIC_APP_URL || 'https://meras.app'],
+    origins: [process.env.NEXT_PUBLIC_APP_URL || 'https://merasapp.com'],
     payload: {
       genericObjects: [
         {
@@ -215,9 +215,22 @@ export async function generateGoogleWalletUrl(data: WalletPassData): Promise<str
     },
   };
 
-  // في البيئة الحقيقية: توقيع JWT بـ Service Account key
-  // هنا نرجع URL placeholder
-  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  // توقيع JWT يحتاج Service Account key (RS256)
+  // بدون مفتاح التوقيع، Google Wallet لن يقبل الرابط
+  const serviceAccountKey = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_KEY;
 
-  return `https://pay.google.com/gp/v/save/${encodedPayload}`;
+  if (!serviceAccountKey) {
+    throw new Error('Google Wallet غير مفعّل حالياً. يرجى إعداد Service Account key.');
+  }
+
+  // توقيع JWT بـ RS256 باستخدام Service Account
+  const { createSign } = await import('crypto');
+  const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sign = createSign('RSA-SHA256');
+  sign.update(`${header}.${body}`);
+  const signature = sign.sign(serviceAccountKey, 'base64url');
+  const jwt = `${header}.${body}.${signature}`;
+
+  return `https://pay.google.com/gp/v/save/${jwt}`;
 }

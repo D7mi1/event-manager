@@ -80,7 +80,7 @@ export function AttendeesTable() {
                               guestName={g.name}
                               eventName={eventDetails?.name || 'حفل مِراس'}
                               // نربط مع صفحة التذكرة العامة
-                              originalLink={`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/t/${g.id}`}
+                              originalLink={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://merasapp.com'}/t/${g.id}`}
                            />
 
                            {/* 2. زر الواتساب التقليدي (احتياطي) */}

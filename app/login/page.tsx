@@ -137,7 +137,12 @@ export default function AuthPage() {
       });
       if (signInError) {
         if (signInError.message.includes('Invalid login credentials')) throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
-        throw signInError;
+        if (signInError.message.includes('Email not confirmed')) {
+          // Redirect to verify page so user can confirm their email
+          router.push(`/auth/verify?email=${encodeURIComponent(data.email)}`);
+          return;
+        }
+        throw new Error('حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.');
       }
       router.push('/dashboard');
     } catch (err: any) { setServerError(err.message); }
@@ -150,7 +155,10 @@ export default function AuthPage() {
         email: data.email,
         options: { shouldCreateUser: false }
       });
-      if (otpError) throw otpError;
+      if (otpError) {
+        if (otpError.message.includes('Signups not allowed for otp')) throw new Error('هذا البريد الإلكتروني غير مسجل. أنشئ حساباً أولاً.');
+        throw new Error('حدث خطأ أثناء إرسال الرمز. حاول مرة أخرى.');
+      }
       setOtpSent(true);
       otpVerifyForm.setValue('email', data.email);
       toast.success(`تم إرسال الرمز إلى ${data.email}`);

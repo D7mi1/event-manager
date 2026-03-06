@@ -356,6 +356,19 @@ export const InvitationImageSchema = z.object({
 });
 
 // ============================================
+// Smart Paste Schema (لصق ذكي)
+// ============================================
+
+export const SmartPasteSchema = z.object({
+  rawText: z.string()
+    .min(3, 'النص قصير جداً')
+    .max(50000, 'النص طويل جداً (الحد الأقصى 50,000 حرف)'),
+  eventId: z.string().uuid('معرف الفعالية غير صحيح'),
+});
+
+export type SmartPasteInput = z.infer<typeof SmartPasteSchema>;
+
+// ============================================
 // Validation Helper Functions
 // ============================================
 

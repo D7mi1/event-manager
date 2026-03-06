@@ -5,7 +5,7 @@
 // Get the app URL from environment or use window location
 export const APP_URL = 
   process.env.NEXT_PUBLIC_APP_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : 'https://meras.app');
+  (typeof window !== 'undefined' ? window.location.origin : 'https://merasapp.com');
 
 // API Configuration
 export const API_CONFIG = {

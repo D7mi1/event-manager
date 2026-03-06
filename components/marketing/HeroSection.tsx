@@ -16,11 +16,11 @@ export default function HeroSection() {
 
       {/* أزرار CTA */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-col sm:flex-row gap-4 mt-10">
-        <a href="/wedding" className="px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 bg-gradient-to-l from-[#C19D65] to-[#D4AF7A] text-black hover:shadow-[0_0_30px_rgba(193,157,101,0.3)]">
-          نظّم حفل زفافك ✨
-        </a>
         <a href="/login" className="px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 bg-blue-600 text-white hover:bg-blue-700 hover:shadow-[0_0_30px_rgba(37,99,235,0.3)]">
-          ابدأ مجاناً
+          ابدأ تنظيم فعاليتك
+        </a>
+        <a href="/pricing" className="px-8 py-4 rounded-2xl font-bold text-sm transition-all duration-300 border border-white/20 text-white/80 hover:bg-white/5 hover:text-white">
+          تصفح الباقات
         </a>
       </motion.div>
     </section>

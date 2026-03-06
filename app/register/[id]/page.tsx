@@ -6,8 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Loader2, Calendar, MapPin, AlertCircle,
-  Briefcase, User, Mail,
+  Briefcase, User, Mail, Heart, Building2, BadgeCheck,
 } from 'lucide-react';
+import NextImage from 'next/image';
 import { supabase } from '@/lib/supabase/client';
 import * as Sentry from '@sentry/nextjs';
 
@@ -35,9 +36,11 @@ export default function RegistrationPage({ params }: PageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState(GULF_COUNTRIES[0]);
 
-  // Theme Logic - Business only
-  const themeColor = '#3B82F6';
-  const themeBg = 'bg-blue-600';
+  // الثيم يتكيف حسب نوع الفعالية
+  const isBusiness = event?.type === 'business';
+  const themeColor = isBusiness ? '#3B82F6' : (event?.theme_color || '#C19D65');
+  const themeBg = isBusiness ? 'bg-blue-600' : 'bg-[#C19D65]';
+  const EventIcon = isBusiness ? Briefcase : Heart;
 
   const {
     register,
@@ -54,6 +57,19 @@ export default function RegistrationPage({ params }: PageProps) {
 
     try {
       const fullPhone = selectedCountry.code + data.phone;
+
+      // التحقق من تسجيل مسبق بنفس الجوال
+      const { data: existing } = await supabase
+        .from('attendees')
+        .select('id')
+        .eq('event_id', id)
+        .eq('phone', fullPhone)
+        .single();
+
+      if (existing) {
+        router.push(`/t/${existing.id}`);
+        return;
+      }
 
       const { data: guest, error: insertError } = await supabase
         .from('attendees')
@@ -86,7 +102,7 @@ export default function RegistrationPage({ params }: PageProps) {
   };
 
   // Loading State
-  if (loading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" /></div>;
+  if (loading) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center"><Loader2 className="animate-spin text-white/50" size={32} /></div>;
 
   // Error State
   if (error || !event) return <div className="min-h-screen bg-[#0A0A0C] flex items-center justify-center text-white">الفعالية غير موجودة أو حدث خطأ في الاتصال</div>;
@@ -98,10 +114,24 @@ export default function RegistrationPage({ params }: PageProps) {
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className={`w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white shadow-2xl ${themeBg}`}>
-            <Briefcase size={36} />
+          <div className={`w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white shadow-2xl relative overflow-hidden ${themeBg}`}>
+            {event.image_url ? (
+              <NextImage
+                src={event.image_url}
+                alt={event.name}
+                fill
+                className="object-cover"
+                sizes="80px"
+                priority
+              />
+            ) : (
+              <EventIcon size={36} />
+            )}
           </div>
           <h1 className="text-3xl font-black text-white mb-2">{event.name}</h1>
+          <p className="text-white/40 text-sm mb-4">
+            {isBusiness ? 'سجّل بياناتك للحصول على بطاقة الدخول' : 'سجّل حضورك واحصل على تذكرتك'}
+          </p>
           <div className="flex justify-center gap-4 text-xs text-white/60 font-bold">
             <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(event.date).toLocaleDateString('ar-SA')}</span>
             <span className="flex items-center gap-1"><MapPin size={14} /> {event.location_name || 'الموقع'}</span>
@@ -121,14 +151,16 @@ export default function RegistrationPage({ params }: PageProps) {
 
           {/* الاسم */}
           <div className="space-y-2">
-            <label className="text-xs text-white/40 mr-4 font-bold">الاسم الثلاثي</label>
+            <label className="text-xs text-white/40 mr-4 font-bold">
+              {isBusiness ? 'الاسم الكامل' : 'الاسم الثلاثي'}
+            </label>
             <div className="relative group">
               <User className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-white transition-colors" size={18} />
               <input
                 type="text"
                 {...register('name')}
                 className={`w-full bg-black/40 border rounded-2xl py-4 pr-12 pl-12 text-white outline-none transition-all ${errors.name ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-[var(--theme)]'}`}
-                placeholder="الاسم كما هو في البطاقة"
+                placeholder={isBusiness ? 'الاسم كما هو في البطاقة' : 'اسمك الثلاثي'}
                 style={{ '--theme': themeColor } as any}
               />
             </div>
@@ -183,7 +215,9 @@ export default function RegistrationPage({ params }: PageProps) {
 
           {/* زر الإرسال */}
           <button type="submit" disabled={isSubmitting} className="w-full py-5 rounded-2xl font-black text-lg text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: themeColor }}>
-            {isSubmitting ? <Loader2 className="animate-spin" /> : 'تأكيد الحضور والحصول على التذكرة'}
+            {isSubmitting ? <Loader2 className="animate-spin" /> : (
+              isBusiness ? 'تأكيد الحضور والحصول على البطاقة' : 'تأكيد الحضور والحصول على التذكرة'
+            )}
           </button>
         </form>
 

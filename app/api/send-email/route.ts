@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { createClient } from '@/lib/supabase/server';
 import { auditLogger } from '@/lib/audit-logger';
 import { metricsCollector } from '@/lib/metrics';
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors';
@@ -27,6 +28,16 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
 
   try {
+    // 🔐 Auth Check (يجب أن يكون المستخدم مسجل دخول)
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: getCorsHeaders(origin || "") }
+      );
+    }
+
     // Rate Limiting (منع سبام الإيميلات)
     const { allowed, headers: rateLimitHeaders } = checkRateLimit(emailLimiter, `email-${ip}`);
     if (!allowed) {

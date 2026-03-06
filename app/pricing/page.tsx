@@ -467,7 +467,7 @@ export default function PricingPage() {
           <div className="relative z-10">
             <h2 className="text-3xl md:text-4xl font-black mb-4 text-white">جاهز لتنظيم فعاليتك؟</h2>
             <p className="text-white/50 mb-8 max-w-md mx-auto">
-              انضم لأكثر من 500 منظم يستخدمون مِراس لإدارة فعالياتهم ومؤتمراتهم بكل احترافية.
+              انضم لأكثر من 500 منظم يستخدمون مِراس لإدارة مناسباتهم وفعالياتهم بكل احترافية.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/30">
@@ -484,7 +484,7 @@ export default function PricingPage() {
 
       <footer className="py-12 px-6 border-t border-white/5 text-center">
         <p className="text-white/20 text-xs">
-          &copy; {new Date().getFullYear()} مِـراس. المنصة الأولى لتنظيم فعاليات الأعمال والمؤتمرات في المملكة.
+          &copy; {new Date().getFullYear()} مِـراس. المنصة الأولى لتنظيم المناسبات والفعاليات في المملكة.
         </p>
       </footer>
     </main>

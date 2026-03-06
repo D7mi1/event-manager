@@ -374,7 +374,7 @@ export default function TicketPage({ params }: PageProps) {
                 {/* QR Code */}
                 <div className="my-4 flex justify-center">
                   <div className="bg-white p-4 rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                    <QRCodeCanvas value={`https://meras.app/admin/scan/${id}`} size={140} bgColor={"#ffffff"} fgColor={"#000000"} level={"Q"} />
+                    <QRCodeCanvas value={`https://merasapp.com/scan/${id}`} size={140} bgColor={"#ffffff"} fgColor={"#000000"} level={"Q"} />
                   </div>
                 </div>
 

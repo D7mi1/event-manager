@@ -36,6 +36,8 @@ interface EventState {
   isEditEventModalOpen: boolean;
   isImportModalOpen: boolean;
   isQueueModalOpen: boolean; // ✅ تمت إضافته
+  isSmartPasteOpen: boolean; // ✅ لصق ذكي
+  isContactImportOpen: boolean; // ✅ استيراد جهات اتصال
 
   // --- Actions ---
   setEventId: (id: string) => void;
@@ -47,6 +49,8 @@ interface EventState {
   toggleEditEventModal: (isOpen: boolean) => void;
   toggleImportModal: (isOpen: boolean) => void;
   toggleQueueModal: (isOpen: boolean) => void; // ✅ تمت إضافته
+  toggleSmartPaste: (isOpen: boolean) => void; // ✅ لصق ذكي
+  toggleContactImport: (isOpen: boolean) => void; // ✅ استيراد جهات اتصال
 
   // --- Operations ---
   fetchData: () => Promise<void>;
@@ -78,6 +82,8 @@ export const useEventStore = create<EventState>((set, get) => ({
   isEditEventModalOpen: false,
   isImportModalOpen: false,
   isQueueModalOpen: false,
+  isSmartPasteOpen: false,
+  isContactImportOpen: false,
 
   setEventId: (id) => set({ eventId: id }),
   setSearchTerm: (term) => set({ searchTerm: term }),
@@ -88,6 +94,8 @@ export const useEventStore = create<EventState>((set, get) => ({
   toggleEditEventModal: (isOpen) => set({ isEditEventModalOpen: isOpen }),
   toggleImportModal: (isOpen) => set({ isImportModalOpen: isOpen }),
   toggleQueueModal: (isOpen) => set({ isQueueModalOpen: isOpen }),
+  toggleSmartPaste: (isOpen) => set({ isSmartPasteOpen: isOpen }),
+  toggleContactImport: (isOpen) => set({ isContactImportOpen: isOpen }),
 
   /**
    * 🚀 Fetch Data Strategy:

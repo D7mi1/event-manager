@@ -176,6 +176,9 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0C] text-white p-6 pt-24 font-sans" dir="rtl">
       <div className="max-w-4xl mx-auto">
+        <Link href="/dashboard" className="text-white/50 hover:text-white flex items-center gap-2 text-sm mb-4 w-fit transition-colors">
+          <ChevronLeft size={16} className="rtl:rotate-180" /> العودة للوحة التحكم
+        </Link>
         <h1 className="text-3xl font-black mb-8">الإعدادات والاشتراكات</h1>
 
         {/* Tabs Navigation */}

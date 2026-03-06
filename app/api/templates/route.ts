@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { templateSchema } from '@/lib/schemas/template'
+import { z } from 'zod'
 import { auditLogger } from '@/lib/audit-logger'
 import { metricsCollector } from '@/lib/metrics'
 import { getCorsHeaders, isOriginAllowed } from '@/lib/cors'
+
+export const dynamic = 'force-dynamic'
 
 // Helper to get client IP
 function getClientIP(request: Request | NextRequest): string {
@@ -83,7 +86,15 @@ export async function GET(request: NextRequest) {
       .eq('event_id', eventId)
 
     if (templateType) {
-      query.eq('template_type', templateType)
+      const validTypes = ['ticket', 'email', 'certificate', 'invitation'] as const;
+      const parsed = z.enum(validTypes).safeParse(templateType);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: 'نوع القالب غير صالح' },
+          { status: 400, headers: getCorsHeaders(origin) }
+        );
+      }
+      query.eq('template_type', parsed.data)
     }
 
     const { data: templates, error: templatesError } = await query

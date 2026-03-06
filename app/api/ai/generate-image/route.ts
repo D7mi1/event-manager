@@ -4,6 +4,8 @@ import { generateInvitationImage } from '@/lib/services/ai-service';
 import { handleApiError } from '@/lib/utils/api-error-handler';
 import { aiLimiter, getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     // 0. Rate Limiting (توليد الصور مكلف)
@@ -40,8 +42,6 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. توليد الصورة باستخدام Hugging Face
-    console.log('🎨 Generating image with Hugging Face...');
-    
     const imageDataUrl = await generateInvitationImage({
       eventType,
       organizerName,
@@ -54,8 +54,6 @@ export async function POST(request: NextRequest) {
     let storagePath = null;
 
     if (imageDataUrl.startsWith('data:')) {
-      console.log('📤 Uploading image to Supabase Storage...');
-      
       // استخراج البيانات من Base64
       const matches = imageDataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
       
@@ -86,7 +84,6 @@ export async function POST(request: NextRequest) {
           
           publicUrl = urlData.publicUrl;
           storagePath = fileName;
-          console.log('✅ Image uploaded successfully:', publicUrl);
         }
       }
     }
@@ -119,7 +116,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ Image generation error:', error);
+    console.error('Image generation error:', error?.message || 'Unknown error');
     
     // معالجة أخطاء محددة
     if (error.message?.includes('rate limit')) {

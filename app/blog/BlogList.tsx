@@ -7,7 +7,7 @@ import { ArrowUpLeft, Calendar, Filter } from 'lucide-react';
 import { BlogPost } from './posts'; // تأكد أن الواجهة (interface) مصدرة من ملف posts
 
 export default function BlogList({ posts }: { posts: BlogPost[] }) {
-    const categories = ['الكل', 'تقنية', 'بروتوكول', 'أمن المعلومات', 'رؤية 2030'];
+    const categories = ['الكل', 'تقنية', 'حفلات الزفاف', 'إدارة مؤتمرات', 'أمن المعلومات', 'إدارة الحشود', 'رؤية 2030'];
     const [activeCategory, setActiveCategory] = useState('الكل');
 
     const filteredPosts = activeCategory === 'الكل'

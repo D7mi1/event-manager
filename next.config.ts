@@ -84,7 +84,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // 🔐 Content Security Policy - مستوحى من production-saas-starter
 const ContentSecurityPolicy = [
   "default-src 'self';",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+  "script-src 'self' 'unsafe-inline';",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
   "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://quickchart.io;",
   "font-src 'self' https://fonts.gstatic.com;",
@@ -203,11 +203,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withPWA(nextConfig), {
+// Sentry source map upload فقط عند وجود SENTRY_AUTH_TOKEN
+const sentryOptions = {
   org: "meras",
   project: "meras-app",
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
   disableLogger: true,
-});
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+};
+
+export default withSentryConfig(withPWA(nextConfig), sentryOptions);

@@ -3,11 +3,41 @@ import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/surveys/respond - تسجيل رد على استبيان
- * لا يتطلب تسجيل دخول (للضيوف)
+ * لا يتطلب تسجيل دخول (للضيوف) لكن محمي بـ rate limiting
  */
+
+// Simple in-memory rate limiter for survey responses
+const responseTracker = new Map<string, { count: number; resetAt: number }>();
+
+function checkSurveyRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const windowMs = 60_000; // 1 minute
+  const maxRequests = 10; // 10 responses per minute max
+
+  const record = responseTracker.get(ip);
+  if (!record || now > record.resetAt) {
+    responseTracker.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= maxRequests) return false;
+  record.count++;
+  return true;
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const forwarded = request.headers.get('x-forwarded-for');
+    const clientIP = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || 'unknown';
+
+    if (!checkSurveyRateLimit(clientIP)) {
+      return NextResponse.json(
+        { error: 'تم تجاوز الحد الأقصى. يرجى المحاولة لاحقاً.' },
+        { status: 429 }
+      );
+    }
+
     const supabase = await createClient();
     const body = await request.json();
     const { survey_id, attendee_id, attendee_name, answers } = body;
@@ -49,9 +79,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'حدث خطأ في النظام' },
       { status: 500 }
     );
   }

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         : '',
       eventLocation: event.location_name || '',
       category: attendee.category || 'عام',
-      qrData: `${process.env.NEXT_PUBLIC_APP_URL || 'https://meras.app'}/t/${attendee.id}`,
+      qrData: `${process.env.NEXT_PUBLIC_APP_URL || 'https://merasapp.com'}/t/${attendee.id}`,
     };
 
     if (platform === 'apple') {

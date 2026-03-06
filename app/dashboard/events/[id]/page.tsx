@@ -15,8 +15,10 @@ import { AddGuestModal } from '@/components/dashboard/AddGuestModal';
 import { MessageConfigModal } from '@/components/dashboard/MessageConfigModal';
 import { EditEventModal } from '@/components/dashboard/EditEventModal';
 import { ImportGuestsModal } from '@/components/dashboard/ImportGuestsModal';
+import { SmartPasteModal } from '@/components/dashboard/SmartPasteModal';
+import { ContactImportModal } from '@/components/dashboard/ContactImportModal';
 
-import { Loader2, ArrowLeft, Plus, Download, MapPin, Settings, Edit, FileSpreadsheet, Radio, Copy, Check, UserPlus, BarChart3, Award, ClipboardList } from 'lucide-react';
+import { Loader2, ArrowLeft, Plus, Download, MapPin, Settings, Edit, FileSpreadsheet, Radio, Copy, Check, UserPlus, BarChart3, Wand2, Contact } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { exportGuestsToExcel } from '@/lib/exports/excel';
@@ -27,12 +29,11 @@ interface PageProps { params: Promise<{ id: string }>; }
 export default function EventControlRoom({ params }: PageProps) {
   const { id } = use(params);
   const [registrationLinkCopied, setRegistrationLinkCopied] = useState(false);
-  const [rsvpLinkCopied, setRsvpLinkCopied] = useState(false);
   
   const { 
     setEventId, fetchData, isLoading, 
-    toggleAddModal, toggleMessageModal, toggleEditEventModal, toggleImportModal, 
-    eventDetails, attendees 
+    toggleAddModal, toggleMessageModal, toggleEditEventModal, toggleImportModal, toggleSmartPaste, toggleContactImport,
+    eventDetails, attendees
   } = useEventStore();
 
   useEffect(() => {
@@ -66,18 +67,11 @@ export default function EventControlRoom({ params }: PageProps) {
   };
 
   const registrationLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/register/${id}`;
-  const rsvpLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/e/${id}`;
-  
+
   const handleCopyRegistrationLink = () => {
     navigator.clipboard.writeText(registrationLink);
     setRegistrationLinkCopied(true);
     setTimeout(() => setRegistrationLinkCopied(false), 2000);
-  };
-
-  const handleCopyRsvpLink = () => {
-    navigator.clipboard.writeText(rsvpLink);
-    setRsvpLinkCopied(true);
-    setTimeout(() => setRsvpLinkCopied(false), 2000);
   };
 
   if (isLoading) return (
@@ -118,10 +112,22 @@ export default function EventControlRoom({ params }: PageProps) {
         </div>
         
         <div className="flex gap-2 w-full md:w-auto">
-           <button onClick={() => toggleImportModal(true)} 
+           <button onClick={() => toggleSmartPaste(true)}
+             className="px-4 py-2.5 bg-gradient-to-r from-[#C19D65] to-[#D4AF37] text-black rounded-xl text-sm font-bold flex items-center gap-2 hover:brightness-110 shadow-lg transition-all"
+             title="لصق ذكي — الصق قائمة الضيوف من واتساب أو أي نص">
+              <Wand2 size={18} /> <span className="hidden md:inline">لصق ذكي</span>
+           </button>
+
+           <button onClick={() => toggleImportModal(true)}
              className="px-4 py-2.5 bg-[#107C41] text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0c6b37] shadow-lg transition-all"
-             title="استيراد من Excel">
+             title="استيراد من Excel أو CSV">
               <FileSpreadsheet size={18} /> <span className="hidden md:inline">Excel</span>
+           </button>
+
+           <button onClick={() => toggleContactImport(true)}
+             className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-blue-700 shadow-lg transition-all"
+             title="استيراد من جهات الاتصال (.vcf)">
+              <Contact size={18} /> <span className="hidden md:inline">جهات اتصال</span>
            </button>
 
            <button onClick={() => toggleAddModal(true)} className="flex-1 md:flex-none px-6 py-2.5 bg-[#C19D65] text-black rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:brightness-110 shadow-lg">
@@ -132,15 +138,7 @@ export default function EventControlRoom({ params }: PageProps) {
               <Download size={18} /> <span className="hidden md:inline">Excel</span>
            </button>
            
-           <Link href={`/dashboard/events/${id}/seating`} className="px-4 py-2.5 bg-[#27272A] rounded-xl text-sm font-bold hover:bg-[#3F3F46] border border-white/10">
-              🪑 المخطط
-           </Link>
-           
-           <Link href={`/dashboard/events/${id}/design`} className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-sm font-bold hover:from-purple-700 hover:to-pink-700 border border-purple-400/30 transition-all">
-              🎨 التصميم
-           </Link>
-           
-           <Link 
+           <Link
               href={`/live/${id}`} 
               target="_blank"
               rel="noopener noreferrer"
@@ -188,44 +186,23 @@ export default function EventControlRoom({ params }: PageProps) {
                currentPin={eventDetails?.pin_hash || '0000'} 
             />
 
-            {/* بطاقة رابط التسجيل */}
+            {/* بطاقة رابط الدعوة */}
             <div className="bg-[#18181B] rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
               <div className="p-6 text-center bg-[#18181B] z-10 relative">
-                <h3 className="font-bold text-lg mb-4 text-blue-500 flex items-center justify-center gap-2">
+                <h3 className="font-bold text-lg mb-4 text-[#C19D65] flex items-center justify-center gap-2">
                   <UserPlus size={20} />
-                  رابط التسجيل
+                  رابط الدعوة
                 </h3>
-                <p className="text-xs text-white/40 mb-4">شارك هذا الرابط مع الضيوف للتسجيل في الفعالية</p>
+                <p className="text-xs text-white/40 mb-4">شارك هذا الرابط مع الضيوف لتسجيل حضورهم</p>
                 <div className="p-4 bg-black/40 rounded-2xl mb-4 font-mono text-xs text-white/50 break-all border border-white/5 shadow-inner select-all dir-ltr">
                   {registrationLink}
                 </div>
-                <button 
-                  onClick={handleCopyRegistrationLink} 
-                  className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
+                <button
+                  onClick={handleCopyRegistrationLink}
+                  className="w-full py-4 bg-[#C19D65] text-black font-black rounded-2xl hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#C19D65]/20"
                 >
                   {registrationLinkCopied ? <Check size={18} /> : <Copy size={18} />}
-                  {registrationLinkCopied ? 'تم النسخ' : 'نسخ رابط التسجيل'}
-                </button>
-              </div>
-            </div>
-
-            {/* بطاقة رابط RSVP البديل */}
-            <div className="bg-[#18181B] rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-              <div className="p-6 text-center bg-[#18181B] z-10 relative">
-                <h3 className="font-bold text-lg mb-4 text-purple-500 flex items-center justify-center gap-2">
-                  <UserPlus size={20} />
-                  رابط RSVP البديل
-                </h3>
-                <p className="text-xs text-white/40 mb-4">صفحة تأكيد الحضور البديلة (للمناسبات الاجتماعية)</p>
-                <div className="p-4 bg-black/40 rounded-2xl mb-4 font-mono text-xs text-white/50 break-all border border-white/5 shadow-inner select-all dir-ltr">
-                  {rsvpLink}
-                </div>
-                <button 
-                  onClick={handleCopyRsvpLink} 
-                  className="w-full py-4 bg-purple-600 text-white font-black rounded-2xl hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20"
-                >
-                  {rsvpLinkCopied ? <Check size={18} /> : <Copy size={18} />}
-                  {rsvpLinkCopied ? 'تم النسخ' : 'نسخ رابط RSVP'}
+                  {registrationLinkCopied ? 'تم النسخ' : 'نسخ رابط الدعوة'}
                 </button>
               </div>
             </div>
@@ -254,6 +231,8 @@ export default function EventControlRoom({ params }: PageProps) {
       <MessageConfigModal />
       <EditEventModal />
       <ImportGuestsModal />
+      <SmartPasteModal />
+      <ContactImportModal />
       <WhatsAppQueueModal />
       
     </div>

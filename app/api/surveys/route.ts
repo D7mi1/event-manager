@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'حدث خطأ في النظام' },
       { status: 500 }
     );
   }
@@ -63,10 +63,28 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const eventId = request.nextUrl.searchParams.get('event_id');
 
     if (!eventId) {
       return NextResponse.json({ error: 'event_id is required' }, { status: 400 });
+    }
+
+    // التحقق من ملكية الفعالية
+    const { data: event } = await supabase
+      .from('events')
+      .select('id')
+      .eq('id', eventId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!event) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
     const { data, error } = await supabase
@@ -78,9 +96,9 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data: data || [] });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'حدث خطأ في النظام' },
       { status: 500 }
     );
   }

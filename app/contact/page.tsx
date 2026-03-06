@@ -100,8 +100,8 @@ export default function ContactPage() {
                 <Phone className="w-5 h-5 text-green-400" />
               </div>
               <h3 className="font-bold mb-1">واتساب</h3>
-              <a href="https://wa.me/966500000000" className="text-white/50 text-sm hover:text-green-400 transition-colors" dir="ltr">
-                +966 50 000 0000
+              <a href="https://wa.me/966550000000" className="text-white/50 text-sm hover:text-green-400 transition-colors" dir="ltr">
+                +966 55 000 0000
               </a>
             </div>
 

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import {
   Plus, Calendar, Users, BarChart3, Clock,
-  Settings, Zap, Bell, CheckCircle2, Crown,
-  ArrowUpRight, Sparkles, Briefcase
+  Settings, Bell, CheckCircle2, Crown,
+  ArrowUpRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -134,10 +134,6 @@ export default function Dashboard() {
             <Link href="/dashboard/settings" aria-label="الإعدادات" className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
               <Settings size={20} aria-hidden="true" />
             </Link>
-            <button aria-label="التنبيهات" className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors relative">
-              <Bell size={20} aria-hidden="true" />
-              {notifications.length > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
-            </button>
             <Link href="/dashboard/events/new" style={{ backgroundColor: themeColor }} className="text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(193,157,101,0.3)]">
               <Plus size={18} /> إنشاء فعالية
             </Link>
@@ -269,29 +265,9 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* 3. Right Column: Subscription & Quick Templates */}
+          {/* 3. Right Column: Subscription */}
           <div className="space-y-6">
-
             <SubscriptionTracker />
-
-            <h2 className="text-xl font-bold flex items-center gap-2"><Zap size={20} className="text-white/40" /> قوالب سريعة</h2>
-            <div className="space-y-3">
-              <button onClick={() => router.push('/dashboard/events/new?template=wedding')} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-[#C19D65]/50 hover:bg-[#C19D65]/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
-                <div className="w-12 h-12 rounded-xl bg-[#C19D65]/10 flex items-center justify-center text-[#C19D65] group-hover:scale-110 transition-transform"><Sparkles size={20} /></div>
-                <div>
-                  <h4 className="font-bold text-sm text-white group-hover:text-[#C19D65] transition-colors">حفل زفاف ملكي</h4>
-                  <p className="text-[10px] text-white/40 mt-1">قالب جاهز بعبارات ترحيبية رسمية وتصاميم ذهبية</p>
-                </div>
-              </button>
-
-              <button onClick={() => router.push('/dashboard/events/new?template=conference')} className="w-full p-4 bg-[#0F0F12] border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/5 rounded-2xl flex items-center gap-4 transition-all group text-right">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform"><Briefcase size={20} /></div>
-                <div>
-                  <h4 className="font-bold text-sm text-white group-hover:text-blue-500 transition-colors">مؤتمر تقني</h4>
-                  <p className="text-[10px] text-white/40 mt-1">يشمل نموذج تسجيل الحضور، وطباعة البطاقات</p>
-                </div>
-              </button>
-            </div>
           </div>
         </div>
 

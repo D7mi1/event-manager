@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { error: error.message || 'Failed to save subscription' },
+      { error: 'حدث خطأ في حفظ الاشتراك' },
       { status: 500 }
     );
   }
@@ -81,9 +81,9 @@ export async function DELETE(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
-      { error: error.message || 'Failed to remove subscription' },
+      { error: 'حدث خطأ في إلغاء الاشتراك' },
       { status: 500 }
     );
   }

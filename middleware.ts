@@ -89,6 +89,9 @@ export async function middleware(request: NextRequest) {
     '/api/ai/generate-text',
     '/api/ai/generate-image',
     '/api/ai/text-variations',
+    '/api/ai/parse-guests',
+    '/api/ai/personalize-message',
+    '/api/send-email',
   ];
 
   const isProtectedApi = protectedApiRoutes.some(route =>

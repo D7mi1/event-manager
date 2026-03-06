@@ -48,10 +48,10 @@ export default function AboutPage() {
                     </span>
                     <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
                         مِـراس.. المنصة الأولى <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-300">لفعاليات الأعمال</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-300">لتنظيم الفعاليات والمناسبات</span>
                     </h1>
                     <p className="text-white/60 text-lg max-w-2xl mx-auto leading-relaxed">
-                        نقدم حلاً تقنياً متكاملاً لتنظيم المؤتمرات وورش العمل والمعارض بأعلى معايير الاحترافية والأمان.
+                        نقدم حلاً تقنياً متكاملاً لتنظيم حفلات الزفاف والتخرّج والمؤتمرات والمعارض بأعلى معايير الاحترافية والأمان.
                     </p>
                 </section>
 
@@ -76,7 +76,7 @@ export default function AboutPage() {
                                 مهمتنا
                             </h2>
                             <p className="text-white/70 leading-relaxed text-justify">
-                                نركز على تمكين الشركات والمنظمات من تنظيم مؤتمراتهم ومعارضهم وورش عملهم بكفاءة عالية، عبر أدوات تسجيل ذكية، إدارة حضور سلسة، وتحليلات بيانات دقيقة.
+                                نركز على تمكين الأفراد والشركات من تنظيم مناسباتهم وفعالياتهم بكفاءة عالية — من حفلات الزفاف والتخرّج إلى المؤتمرات والمعارض — عبر أدوات تسجيل ذكية، إدارة حضور سلسة، وتحليلات بيانات دقيقة.
                             </p>
                         </div>
                     </section>
